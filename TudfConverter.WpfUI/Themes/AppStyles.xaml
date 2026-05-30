@@ -1,0 +1,422 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════
+         DESIGN SYSTEM: Arctic Luminance  v2.1
+    ═══════════════════════════════════════════ -->
+
+    <!-- ── Color Tokens ── -->
+    <Color x:Key="PrimaryBgColor">#FFFFFF</Color>
+    <Color x:Key="SecondaryBgColor">#F7F8FC</Color>
+    <Color x:Key="TertiaryBgColor">#EFF1F8</Color>
+    <Color x:Key="PrimaryAccentColor">#1D4ED8</Color>
+    <Color x:Key="AccentHoverColor">#1E40AF</Color>
+    <Color x:Key="SoftAccentColor">#EFF6FF</Color>
+    <Color x:Key="SoftAccentBorderColor">#BFDBFE</Color>
+    <Color x:Key="TextPrimaryColor">#0F0F1A</Color>
+    <Color x:Key="TextSecondaryColor">#4B5063</Color>
+    <Color x:Key="TextTertiaryColor">#9DA3B4</Color>
+    <Color x:Key="BorderColor">#E4E7F0</Color>
+    <Color x:Key="BorderStrongColor">#C8CDDE</Color>
+    <Color x:Key="SuccessColor">#10B981</Color>
+    <Color x:Key="SuccessBgColor">#ECFDF5</Color>
+    <Color x:Key="SuccessBorderColor">#6EE7B7</Color>
+
+    <!-- ── Brushes ── -->
+    <SolidColorBrush x:Key="PrimaryBg"        Color="{StaticResource PrimaryBgColor}"/>
+    <SolidColorBrush x:Key="SecondaryBg"      Color="{StaticResource SecondaryBgColor}"/>
+    <SolidColorBrush x:Key="TertiaryBg"       Color="{StaticResource TertiaryBgColor}"/>
+    <SolidColorBrush x:Key="PrimaryAccent"    Color="{StaticResource PrimaryAccentColor}"/>
+    <SolidColorBrush x:Key="AccentHover"      Color="{StaticResource AccentHoverColor}"/>
+    <SolidColorBrush x:Key="SoftAccent"       Color="{StaticResource SoftAccentColor}"/>
+    <SolidColorBrush x:Key="SoftAccentBorder" Color="{StaticResource SoftAccentBorderColor}"/>
+    <SolidColorBrush x:Key="TextPrimary"      Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondary"    Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextTertiary"     Color="{StaticResource TextTertiaryColor}"/>
+    <SolidColorBrush x:Key="BorderBrush"      Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BorderStrong"     Color="{StaticResource BorderStrongColor}"/>
+    <SolidColorBrush x:Key="Success"          Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="SuccessBg"        Color="{StaticResource SuccessBgColor}"/>
+    <SolidColorBrush x:Key="SuccessBorder"    Color="{StaticResource SuccessBorderColor}"/>
+    <SolidColorBrush x:Key="WhiteBrush"       Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
+
+    <!-- ── Page background: soft indigo radial glow from left ── -->
+    <RadialGradientBrush x:Key="AppBackground"
+                         RadiusX="0.9" RadiusY="1.0"
+                         Center="0.18,0.5" GradientOrigin="0.18,0.5">
+        <GradientStop Color="#BBEFF6FF" Offset="0"/>
+        <GradientStop Color="#FFFFFF"   Offset="0.65"/>
+    </RadialGradientBrush>
+
+    <!-- ── Shared effects ── -->
+    <DropShadowEffect x:Key="CardShadow"
+                      BlurRadius="40" Opacity="0.10"
+                      ShadowDepth="16" Direction="270"
+                      Color="{StaticResource PrimaryAccentColor}"/>
+
+    <DropShadowEffect x:Key="BtnHoverGlow"
+                      BlurRadius="22" Opacity="0.36"
+                      ShadowDepth="5" Direction="270"
+                      Color="{StaticResource PrimaryAccentColor}"/>
+
+    <DropShadowEffect x:Key="SuccessIconGlow"
+                      BlurRadius="10" Opacity="0.30"
+                      ShadowDepth="2" Direction="270"
+                      Color="{StaticResource PrimaryAccentColor}"/>
+
+    <!-- ═══════════════════════════════════════════
+         TYPOGRAPHY
+    ═══════════════════════════════════════════ -->
+
+    <!-- Global TextBlock base -->
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Plus Jakarta Sans, Inter, SF Pro Display, Segoe UI, sans-serif"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <Style x:Key="DisplayTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Plus Jakarta Sans, Inter, SF Pro Display, Segoe UI, sans-serif"/>
+        <Setter Property="FontSize"   Value="28"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="LineHeight" Value="36"/>
+    </Style>
+
+    <Style x:Key="H3Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Plus Jakarta Sans, Inter, SF Pro Display, Segoe UI, sans-serif"/>
+        <Setter Property="FontSize"   Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+
+    <Style x:Key="BodyLargeStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Plus Jakarta Sans, Inter, SF Pro Display, Segoe UI, sans-serif"/>
+        <Setter Property="FontSize"   Value="13.5"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="LineHeight" Value="22"/>
+    </Style>
+
+    <Style x:Key="LabelStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Plus Jakarta Sans, Inter, SF Pro Display, Segoe UI, sans-serif"/>
+        <Setter Property="FontSize"   Value="10.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+    </Style>
+
+    <Style x:Key="FooterBrandStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Plus Jakarta Sans, Inter, Segoe UI, sans-serif"/>
+        <Setter Property="FontSize"   Value="11"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════
+         STRUCTURAL CONTAINERS
+    ═══════════════════════════════════════════ -->
+
+    <Style x:Key="TopNavStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{StaticResource PrimaryBg}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <Style x:Key="FooterBarStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{StaticResource PrimaryBg}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        <Setter Property="Padding"         Value="0,11"/>
+    </Style>
+
+    <!-- TC logo badge -->
+    <Style x:Key="LogoBadgeStyle" TargetType="Border">
+        <Setter Property="Width"           Value="28"/>
+        <Setter Property="Height"          Value="28"/>
+        <Setter Property="CornerRadius"    Value="7"/>
+        <Setter Property="Background"      Value="{StaticResource SoftAccent}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource SoftAccentBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- "Ready" status pill -->
+    <Style x:Key="StatusPillStyle" TargetType="Border">
+        <Setter Property="CornerRadius"    Value="99"/>
+        <Setter Property="Padding"         Value="8,4"/>
+        <Setter Property="Background"      Value="{StaticResource SecondaryBg}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- Main levitating card -->
+    <Style x:Key="PremiumCardStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{StaticResource PrimaryBg}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="16"/>
+        <Setter Property="Padding"         Value="40,36"/>
+        <Setter Property="Effect"          Value="{StaticResource CardShadow}"/>
+    </Style>
+
+    <!-- Eyebrow badge: "Excel → TUDF" -->
+    <Style x:Key="EyebrowBadgeStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{StaticResource SoftAccent}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource SoftAccentBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="5"/>
+        <Setter Property="Padding"         Value="9,3"/>
+    </Style>
+
+    <!-- Thin horizontal rule -->
+    <Style x:Key="DividerStyle" TargetType="Border">
+        <Setter Property="Height"     Value="1"/>
+        <Setter Property="Background" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="Margin"     Value="0,24,0,24"/>
+    </Style>
+
+    <!-- Success banner strip -->
+    <Style x:Key="SuccessBannerStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{StaticResource SuccessBg}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource SuccessBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="8"/>
+        <Setter Property="Padding"         Value="14,10"/>
+    </Style>
+
+    <!-- Version pill in footer -->
+    <Style x:Key="VersionPillStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{StaticResource SecondaryBg}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="4"/>
+        <Setter Property="Padding"         Value="8,2"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════
+         INPUT
+    ═══════════════════════════════════════════ -->
+    <Style x:Key="PremiumInputStyle" TargetType="TextBox">
+        <Setter Property="Background"               Value="{StaticResource SecondaryBg}"/>
+        <Setter Property="Foreground"               Value="{StaticResource TextSecondary}"/>
+        <Setter Property="CaretBrush"               Value="{StaticResource PrimaryAccent}"/>
+        <Setter Property="BorderBrush"              Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness"          Value="1"/>
+        <Setter Property="Padding"                  Value="14,0"/>
+        <Setter Property="FontSize"                 Value="13"/>
+        <Setter Property="FontWeight"               Value="Normal"/>
+        <Setter Property="FontFamily"               Value="Plus Jakarta Sans, Inter, Segoe UI, sans-serif"/>
+        <Setter Property="Height"                   Value="38"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle"         Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalAlignment="Center"
+                                      Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Root" Property="BorderBrush"     Value="{StaticResource PrimaryAccent}"/>
+                            <Setter TargetName="Root" Property="BorderThickness" Value="1.5"/>
+                            <Setter TargetName="Root" Property="Background"      Value="{StaticResource PrimaryBg}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════
+         BUTTONS
+         NOTE: WPF cannot animate a named child inside
+         Border.RenderTransform from a trigger, so the
+         lift effect is achieved by swapping the entire
+         RenderTransform value on the Root Border itself.
+    ═══════════════════════════════════════════ -->
+
+    <!-- Primary button — indigo, lifts on hover -->
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background"        Value="{StaticResource PrimaryAccent}"/>
+        <Setter Property="Foreground"        Value="{StaticResource WhiteBrush}"/>
+        <Setter Property="BorderThickness"   Value="0"/>
+        <Setter Property="Height"            Value="42"/>
+        <Setter Property="FontSize"          Value="13.5"/>
+        <Setter Property="FontWeight"        Value="Medium"/>
+        <Setter Property="FontFamily"        Value="Plus Jakarta Sans, Inter, Segoe UI, sans-serif"/>
+        <Setter Property="Cursor"            Value="Hand"/>
+        <Setter Property="FocusVisualStyle"  Value="{x:Null}"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <TranslateTransform Y="0"/>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="9"
+                            RenderTransformOrigin="{TemplateBinding RenderTransformOrigin}"
+                            RenderTransform="{TemplateBinding RenderTransform}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentHover}"/>
+                            <Setter TargetName="Root" Property="Effect"     Value="{StaticResource BtnHoverGlow}"/>
+                            <Setter TargetName="Root" Property="RenderTransform">
+                                <Setter.Value>
+                                    <TranslateTransform Y="-2"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentHover}"/>
+                            <Setter TargetName="Root" Property="Opacity"    Value="0.90"/>
+                            <Setter TargetName="Root" Property="RenderTransform">
+                                <Setter.Value>
+                                    <TranslateTransform Y="0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource BorderBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Compact primary — same template, smaller height (success strip) -->
+    <Style x:Key="CompactPrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background"        Value="{StaticResource PrimaryAccent}"/>
+        <Setter Property="Foreground"        Value="{StaticResource WhiteBrush}"/>
+        <Setter Property="BorderThickness"   Value="0"/>
+        <Setter Property="Height"            Value="34"/>
+        <Setter Property="Padding"           Value="14,0"/>
+        <Setter Property="FontSize"          Value="12.5"/>
+        <Setter Property="FontWeight"        Value="Medium"/>
+        <Setter Property="FontFamily"        Value="Plus Jakarta Sans, Inter, Segoe UI, sans-serif"/>
+        <Setter Property="Cursor"            Value="Hand"/>
+        <Setter Property="FocusVisualStyle"  Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="7">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentHover}"/>
+                            <Setter TargetName="Root" Property="Effect"     Value="{StaticResource BtnHoverGlow}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.90"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource BorderBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Secondary button — outlined, lifts on hover -->
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="Background"        Value="{StaticResource PrimaryBg}"/>
+        <Setter Property="Foreground"        Value="{StaticResource TextPrimary}"/>
+        <Setter Property="BorderBrush"       Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness"   Value="1"/>
+        <Setter Property="Height"            Value="38"/>
+        <Setter Property="Padding"           Value="16,0"/>
+        <Setter Property="FontSize"          Value="12.5"/>
+        <Setter Property="FontWeight"        Value="Medium"/>
+        <Setter Property="FontFamily"        Value="Plus Jakarta Sans, Inter, Segoe UI, sans-serif"/>
+        <Setter Property="Cursor"            Value="Hand"/>
+        <Setter Property="FocusVisualStyle"  Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background"  Value="{StaticResource SecondaryBg}"/>
+                            <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
+                            <Setter TargetName="Root" Property="RenderTransform">
+                                <Setter.Value>
+                                    <TranslateTransform Y="-1"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="RenderTransform">
+                                <Setter.Value>
+                                    <TranslateTransform Y="0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════
+         PROGRESS BAR
+    ═══════════════════════════════════════════ -->
+    <Style x:Key="LiquidProgressBarStyle" TargetType="ProgressBar">
+        <Setter Property="Height"          Value="3"/>
+        <Setter Property="Background"      Value="{StaticResource TertiaryBg}"/>
+        <Setter Property="Foreground"      Value="{StaticResource PrimaryAccent}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}" CornerRadius="99"/>
+                        <Border x:Name="PART_Indicator"
+                                Background="{TemplateBinding Foreground}"
+                                CornerRadius="99"
+                                HorizontalAlignment="Left">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" Opacity="0.55"
+                                                  ShadowDepth="0"
+                                                  Color="{StaticResource PrimaryAccentColor}"/>
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
