@@ -28,8 +28,8 @@ namespace TudfConverter.WpfUI
                 Name = new NameSegmentModel
                 {
                     FullName = GetValue(row, ExcelColumnMap.ConsumerName) ?? "",
-                    DateOfBirth = TryParseDate(GetValue(row, ExcelColumnMap.DateOfBirth), out var dob) ? dob : null,
-                    Gender = int.TryParse(GetValue(row, ExcelColumnMap.Gender), out int g) ? g : null
+                    DateOfBirth = TryParseDate(GetValue(row, ExcelColumnMap.DateOfBirth), out var dob) ? dob : (DateTime?)null,
+                    Gender = int.TryParse(GetValue(row, ExcelColumnMap.Gender), out int g) ? g : (int?)null
                 },
                 Identifications = MapIdentifications(row),
                 Telephones = MapTelephones(row),
@@ -51,41 +51,53 @@ namespace TudfConverter.WpfUI
                 AccountType = int.TryParse(GetValue(row, ExcelColumnMap.AccountType), out int type) ? type : 0,
                 OwnershipIndicator = int.TryParse(GetValue(row, ExcelColumnMap.OwnershipIndicator), out int own) ? own : 1,
                 DateOpenedDisbursed = TryParseDate(GetValue(row, ExcelColumnMap.DateOpenedDisbursed), out var d1) ? d1 : default,
-                DateOfLastPayment = TryParseDate(GetValue(row, ExcelColumnMap.DateOfLastPayment), out var d2) ? d2 : null,
-                DateClosed = TryParseDate(GetValue(row, ExcelColumnMap.DateClosed), out var d3) ? d3 : null,
+                DateOfLastPayment = TryParseDate(GetValue(row, ExcelColumnMap.DateOfLastPayment), out var d2) ? d2 : (DateTime?)null,
+                DateClosed = TryParseDate(GetValue(row, ExcelColumnMap.DateClosed), out var d3) ? d3 : (DateTime?)null,
                 DateReportedAndCertified = TryParseDate(GetValue(row, ExcelColumnMap.DateReportedAndCertified), out var d4) ? d4 : DateTime.Now,
                 HighCreditSanctionedAmount = TryParseLong(GetValue(row, ExcelColumnMap.HighCreditSanctionedAmt), out var hc) ? hc : 0,
                 CurrentBalance = TryParseLong(GetValue(row, ExcelColumnMap.CurrentBalance), out var bal) ? bal : 0,
                 IsCurrentBalanceNegative = (GetValue(row, ExcelColumnMap.CurrentBalance) ?? "").Trim().StartsWith("-"),
-                AmountOverdue = TryParseLong(GetValue(row, ExcelColumnMap.AmtOverdue), out var over) ? over : null,
-                NumberOfDaysPastDue = int.TryParse(GetValue(row, ExcelColumnMap.NoOfDaysPastDue), out int past) ? past : null,
+                AmountOverdue = TryParseLong(GetValue(row, ExcelColumnMap.AmtOverdue), out var over) ? over : (long?)null,
+                NumberOfDaysPastDue = int.TryParse(GetValue(row, ExcelColumnMap.NoOfDaysPastDue), out int past) ? past : (int?)null,
                 OldReportingMemberCode = GetValue(row, ExcelColumnMap.OldMbrCode),
                 OldMemberShortName = GetValue(row, ExcelColumnMap.OldMbrShortName),
                 OldAccountNumber = GetValue(row, ExcelColumnMap.OldAccNo),
-                OldAccountType = int.TryParse(GetValue(row, ExcelColumnMap.OldAccType), out int oldtype) ? oldtype : null,
-                OldOwnershipIndicator = int.TryParse(GetValue(row, ExcelColumnMap.OldOwnershipIndicator), out int oldown) ? oldown : null,
-                SuitFiledWilfulDefault = int.TryParse(GetValue(row, ExcelColumnMap.SuitFiledWilfulDefault), out int suit) ? suit : null,
-                AssetClassification = int.TryParse(GetValue(row, ExcelColumnMap.AssetClassification), out int asset) ? asset : null,
-                ValueOfCollateral = TryParseLong(GetValue(row, ExcelColumnMap.ValueOfCollateral), out var coll) ? coll : null,
-                TypeOfCollateral = int.TryParse(GetValue(row, ExcelColumnMap.TypeOfCollateral), out int coltype) ? coltype : null,
-                CreditLimit = TryParseLong(GetValue(row, ExcelColumnMap.CreditLimit), out var clim) ? clim : null,
-                CashLimit = TryParseLong(GetValue(row, ExcelColumnMap.CashLimit), out var cashlim) ? cashlim : null,
+                OldAccountType = int.TryParse(GetValue(row, ExcelColumnMap.OldAccType), out int oldtype) ? oldtype : (int?)null,
+                OldOwnershipIndicator = int.TryParse(GetValue(row, ExcelColumnMap.OldOwnershipIndicator), out int oldown) ? oldown : (int?)null,
+                SuitFiledWilfulDefault = int.TryParse(GetValue(row, ExcelColumnMap.SuitFiledWilfulDefault), out int suit) ? suit : (int?)null,
+                AssetClassification = int.TryParse(GetValue(row, ExcelColumnMap.AssetClassification), out int asset) ? asset : (int?)null,
+                ValueOfCollateral = TryParseLong(GetValue(row, ExcelColumnMap.ValueOfCollateral), out var coll) ? coll : (long?)null,
+                TypeOfCollateral = int.TryParse(GetValue(row, ExcelColumnMap.TypeOfCollateral), out int coltype) ? coltype : (int?)null,
+                CreditLimit = TryParseLong(GetValue(row, ExcelColumnMap.CreditLimit), out var clim) ? clim : (long?)null,
+                CashLimit = TryParseLong(GetValue(row, ExcelColumnMap.CashLimit), out var cashlim) ? cashlim : (long?)null,
                 RateOfInterest = GetValue(row, ExcelColumnMap.RateOfInterest),
-                RepaymentTenure = int.TryParse(GetValue(row, ExcelColumnMap.RepaymentTenure), out int tenure) ? tenure : null,
-                EmiAmount = TryParseLong(GetValue(row, ExcelColumnMap.EmiAmount), out var emi) ? emi : null,
-                WrittenOffAmountTotal = TryParseLong(GetValue(row, ExcelColumnMap.WrittenOffAmountTotal), out var woTot) ? woTot : null,
-                WrittenOffAmountPrincipal = TryParseLong(GetValue(row, ExcelColumnMap.WrittenOffPrincipalAmount), out var woPrin) ? woPrin : null,
-                SettlementAmount = TryParseLong(GetValue(row, ExcelColumnMap.SettlementAmt), out var setl) ? setl : null,
-                PaymentFrequency = int.TryParse(GetValue(row, ExcelColumnMap.PaymentFrequency), out int freq) ? freq : null,
-                ActualPaymentAmount = TryParseLong(GetValue(row, ExcelColumnMap.ActualPaymentAmt), out var act) ? act : null,
-                OccupationCode = int.TryParse(GetValue(row, ExcelColumnMap.OccupationCode), out int occ) ? occ : null,
-                Income = TryParseLong(GetValue(row, ExcelColumnMap.Income), out var inc) ? inc : null,
+                RepaymentTenure = int.TryParse(GetValue(row, ExcelColumnMap.RepaymentTenure), out int tenure) ? tenure : (int?)null,
+                EmiAmount = TryParseLong(GetValue(row, ExcelColumnMap.EmiAmount), out var emi) ? emi : (long?)null,
+                WrittenOffAmountTotal = TryParseLong(GetValue(row, ExcelColumnMap.WrittenOffAmountTotal), out var woTot) ? woTot : (long?)null,
+                WrittenOffAmountPrincipal = TryParseLong(GetValue(row, ExcelColumnMap.WrittenOffPrincipalAmount), out var woPrin) ? woPrin : (long?)null,
+                SettlementAmount = TryParseLong(GetValue(row, ExcelColumnMap.SettlementAmt), out var setl) ? setl : (long?)null,
+                PaymentFrequency = int.TryParse(GetValue(row, ExcelColumnMap.PaymentFrequency), out int freq) ? freq : (int?)null,
+                ActualPaymentAmount = TryParseLong(GetValue(row, ExcelColumnMap.ActualPaymentAmt), out var act) ? act : (long?)null,
+                OccupationCode = int.TryParse(GetValue(row, ExcelColumnMap.OccupationCode), out int occ) ? occ : (int?)null,
+                Income = TryParseLong(GetValue(row, ExcelColumnMap.Income), out var inc) ? inc : (long?)null,
                 NetGrossIncomeIndicator = GetValue(row, ExcelColumnMap.NetGrossIncomeIndicator),
                 MonthlyAnnualIncomeIndicator = GetValue(row, ExcelColumnMap.MonthlyAnnualIncomeIndicator),
-                CreditFacilityStatus = int.TryParse(GetValue(row, ExcelColumnMap.CreditFacilityStatus), out int cfs) ? cfs : null
+                CreditFacilityStatus = int.TryParse(GetValue(row, ExcelColumnMap.CreditFacilityStatus), out int cfs) ? cfs : (int?)null
             };
 
             return model;
+        }
+
+        /// <summary>
+        /// Clean address text: remove disallowed characters per UCRF spec Appendix A.
+        /// Disallowed in addresses: hyphens (-) and forward slashes (/) that are
+        /// common in Indian addresses like "AT/POST" or "TAL-PATAN".
+        /// </summary>
+        private static string CleanAddressText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return text;
+            // Remove hyphen and forward slash — both cause issues in TUDF address fields
+            return text.Replace("-", " ").Replace("/", " ");
         }
 
         /// <summary>
@@ -103,7 +115,6 @@ namespace TudfConverter.WpfUI
             {
                 if (current.Length == 0)
                 {
-                    // If single word longer than maxLen, truncate
                     current.Append(word.Length > maxLen ? word.Substring(0, maxLen) : word);
                 }
                 else if (current.Length + 1 + word.Length <= maxLen)
@@ -134,8 +145,8 @@ namespace TudfConverter.WpfUI
             {
                 var addr = new AddressModel { SegmentIndex = 1 };
 
-                // Remove hyphens from address string, then split into max 40-char lines
-                var cleanAddress = address1Raw.Replace("-", "");
+                // FIX: Remove hyphens AND forward slashes (both disallowed/problematic in TUDF addresses)
+                var cleanAddress = CleanAddressText(address1Raw);
                 var lines = SplitAddressIntoLines(cleanAddress, 40);
 
                 addr.AddressLine1 = lines.Count > 0 ? lines[0] : cleanAddress;
@@ -153,6 +164,31 @@ namespace TudfConverter.WpfUI
                     addr.ResidenceCode = residence;
 
                 addresses.Add(addr);
+            }
+
+            // Second address if present
+            var address2Raw = GetValue(row, ExcelColumnMap.AddressLine2);
+            if (!string.IsNullOrWhiteSpace(address2Raw))
+            {
+                var addr2 = new AddressModel { SegmentIndex = 2 };
+                var cleanAddress2 = CleanAddressText(address2Raw);
+                var lines2 = SplitAddressIntoLines(cleanAddress2, 40);
+
+                addr2.AddressLine1 = lines2.Count > 0 ? lines2[0] : cleanAddress2;
+                if (lines2.Count > 1) addr2.AddressLine2 = lines2[1];
+                if (lines2.Count > 2) addr2.AddressLine3 = lines2[2];
+                if (lines2.Count > 3) addr2.AddressLine4 = lines2[3];
+                if (lines2.Count > 4) addr2.AddressLine5 = lines2[4];
+
+                addr2.StateCode = GetValue(row, ExcelColumnMap.StateCode2);
+                addr2.PinCode = GetValue(row, ExcelColumnMap.PinCode2);
+
+                if (int.TryParse(GetValue(row, ExcelColumnMap.AddressCategory2), out int category2))
+                    addr2.AddressCategory = category2;
+                if (int.TryParse(GetValue(row, ExcelColumnMap.ResidenceCode2), out int residence2))
+                    addr2.ResidenceCode = residence2;
+
+                addresses.Add(addr2);
             }
 
             return addresses;
@@ -176,6 +212,10 @@ namespace TudfConverter.WpfUI
                 }
             }
 
+            // ID types per UCRF v3.74:
+            // 01=PAN, 02=Passport, 03=VoterID, 04=DrivingLicense, 05=RationCard,
+            // 06=UID/Aadhaar, 09=CKYC, 10=NREGA(G RAM G)
+            // Note: types 07 and 08 (Additional ID) cause "Reject Segment" per spec — do NOT submit them
             AddId(ExcelColumnMap.IncomeTaxIdNumber, 1);
             AddId(ExcelColumnMap.PassportNumber, 2, ExcelColumnMap.PassportIssueDate, ExcelColumnMap.PassportExpiryDate);
             AddId(ExcelColumnMap.VoterIdNumber, 3);
@@ -183,13 +223,11 @@ namespace TudfConverter.WpfUI
             AddId(ExcelColumnMap.RationCardNumber, 5);
             AddId(ExcelColumnMap.UniversalIdNumber, 6);
 
-            var ckycVal = GetValue(row, ExcelColumnMap.Ckyc);
-            if (!string.IsNullOrWhiteSpace(ckycVal)) AddId(ExcelColumnMap.Ckyc, 9);
-            else AddId(ExcelColumnMap.AdditionalId1, 9);
-
-            var nregaVal = GetValue(row, ExcelColumnMap.NregaCardNumber);
-            if (!string.IsNullOrWhiteSpace(nregaVal)) AddId(ExcelColumnMap.NregaCardNumber, 10);
-            else AddId(ExcelColumnMap.AdditionalId2, 10);
+            // FIX: CKYC is type 09, NREGA is type 10 (per v3.71 correction)
+            // Additional ID #1 and #2 (types 07/08) are marked "For Future Use" = rejected by CIC
+            // So we only submit CKYC and NREGA if present
+            AddId(ExcelColumnMap.Ckyc, 9);
+            AddId(ExcelColumnMap.NregaCardNumber, 10);
 
             return ids;
         }
@@ -211,10 +249,12 @@ namespace TudfConverter.WpfUI
                 }
             }
 
+            // Telephone types: 01=Mobile, 02=Home, 03=Office (04=Other not in spec v3.74)
             AddPhone(ExcelColumnMap.TelephoneNoMobile, "01");
             AddPhone(ExcelColumnMap.TelephoneNoResidence, "02");
             AddPhone(ExcelColumnMap.TelephoneNoOffice, "03", ExcelColumnMap.ExtensionOffice);
-            AddPhone(ExcelColumnMap.TelephoneNoOther, "04", ExcelColumnMap.ExtensionOther);
+            // Note: type "04" is not in the v3.74 spec catalogue — map to "00" (Not Classified)
+            AddPhone(ExcelColumnMap.TelephoneNoOther, "00", ExcelColumnMap.ExtensionOther);
 
             return phones;
         }
@@ -224,6 +264,8 @@ namespace TudfConverter.WpfUI
             var emails = new List<EmailModel>();
             var email1 = GetValue(row, ExcelColumnMap.EmailId1);
             if (!string.IsNullOrWhiteSpace(email1)) emails.Add(new EmailModel { SegmentIndex = 1, EmailId = email1 });
+            var email2 = GetValue(row, ExcelColumnMap.EmailId2);
+            if (!string.IsNullOrWhiteSpace(email2)) emails.Add(new EmailModel { SegmentIndex = 2, EmailId = email2 });
             return emails;
         }
 
@@ -232,6 +274,7 @@ namespace TudfConverter.WpfUI
             var history = new List<AccountHistoryModel>();
             int index = 1;
 
+            // Spec v3.74: TH segment can occur maximum 47 times per record (H01 to H47)
             for (int i = 1; i <= 47; i++)
             {
                 var dpdKey = $"Month{i}_DPD";
@@ -260,14 +303,21 @@ namespace TudfConverter.WpfUI
             return null;
         }
 
+        /// <summary>
+        /// Parse date from various formats. Primary format is ddMMyyyy (as stored in Excel text cells).
+        /// </summary>
         private static bool TryParseDate(string? value, out DateTime date)
         {
             date = default;
             if (string.IsNullOrWhiteSpace(value)) return false;
+            // Primary: ddMMyyyy (UCRF standard format, also how Excel text cells store it)
+            if (DateTime.TryParseExact(value, "ddMMyyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
+            // Fallback formats
             if (DateTime.TryParseExact(value, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
             if (DateTime.TryParseExact(value, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
-            if (DateTime.TryParseExact(value, "ddMMyyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
-            if (DateTime.TryParse(value, out var dt))
+            if (DateTime.TryParseExact(value, "MM/dd/yyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
+            if (DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var dt))
             {
                 date = dt;
                 return true;
@@ -302,7 +352,12 @@ namespace TudfConverter.WpfUI
                 }
 
                 IXLRow? headerRow = null;
-                var knownHeaderKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Name of the CU", "Member UserId", "Cycle Date", "Cycle Identifier" };
+                var knownHeaderKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Name of the CU", "Member UserId", "Cycle Date", "Cycle Identifier",
+                    "Reporting Member ID", "Short Name", "Cycle Identification", "Date Reported",
+                    "Reporting Password", "Authentication Method", "Future Use", "Member Data"
+                };
                 int skipNextRowsCount = 0;
 
                 for (int r = 1; r <= 50; r++)
@@ -331,6 +386,7 @@ namespace TudfConverter.WpfUI
                         break;
                     }
 
+                    // Collect header key-value pairs from pre-data rows
                     var matchedCells = new List<(IXLCell cell, string matchedKey)>();
                     foreach (var cell in row.CellsUsed())
                     {
@@ -345,9 +401,7 @@ namespace TudfConverter.WpfUI
                         {
                             int colNum = headerCell.Address.ColumnNumber;
                             var valCell = nextRow.Cell(colNum);
-                            var val = valCell.Value.ToString().Trim();
-                            if (valCell.DataType == XLDataType.DateTime && valCell.Value.IsDateTime)
-                                val = valCell.Value.GetDateTime().ToString("ddMMyyyy");
+                            var val = ReadCellAsString(valCell);
                             if (!string.IsNullOrEmpty(val)) result.HeaderData[key] = val;
                         }
                         skipNextRowsCount = 1;
@@ -357,9 +411,7 @@ namespace TudfConverter.WpfUI
                         var (keyCell, key) = matchedCells[0];
                         int colNum = keyCell.Address.ColumnNumber;
                         var valCell = row.Cell(colNum + 1);
-                        var val = valCell.Value.ToString().Trim();
-                        if (valCell.DataType == XLDataType.DateTime && valCell.Value.IsDateTime)
-                            val = valCell.Value.GetDateTime().ToString("ddMMyyyy");
+                        var val = ReadCellAsString(valCell);
                         if (!string.IsNullOrEmpty(val)) result.HeaderData[key] = val;
                     }
                     else
@@ -368,13 +420,9 @@ namespace TudfConverter.WpfUI
                         if (cellsUsed.Count >= 2)
                         {
                             var key = cellsUsed[0].Value.ToString().Trim();
-                            var val = cellsUsed[1].Value.ToString().Trim();
+                            var val = ReadCellAsString(cellsUsed[1]);
                             if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(val))
-                            {
-                                if (cellsUsed[1].DataType == XLDataType.DateTime && cellsUsed[1].Value.IsDateTime)
-                                    val = cellsUsed[1].Value.GetDateTime().ToString("ddMMyyyy");
                                 result.HeaderData[key] = val;
-                            }
                         }
                     }
                 }
@@ -389,7 +437,8 @@ namespace TudfConverter.WpfUI
                 foreach (var cell in headerRow.CellsUsed())
                 {
                     var header = cell.Value.ToString().Trim();
-                    if (!string.IsNullOrEmpty(header)) columnMap[header] = cell.Address.ColumnNumber;
+                    if (!string.IsNullOrEmpty(header) && !columnMap.ContainsKey(header))
+                        columnMap[header] = cell.Address.ColumnNumber;
                 }
 
                 var expectedColumns = ExcelColumnMap.GetAllExpectedColumns();
@@ -422,16 +471,7 @@ namespace TudfConverter.WpfUI
                     foreach (var kvp in columnMap)
                     {
                         var cell = row.Cell(kvp.Value);
-                        string cellValue = string.Empty;
-
-                        if (cell.DataType == XLDataType.DateTime && cell.Value.IsDateTime)
-                            cellValue = cell.Value.GetDateTime().ToString("dd/MM/yyyy");
-                        else if (cell.DataType == XLDataType.Number && cell.Value.IsNumber)
-                            cellValue = cell.Value.GetNumber().ToString("0.################");
-                        else
-                            cellValue = cell.Value.ToString().Trim();
-
-                        rawRow.Columns[kvp.Key] = cellValue;
+                        rawRow.Columns[kvp.Key] = ReadCellAsString(cell);
                     }
 
                     result.Rows.Add(rawRow);
@@ -443,6 +483,19 @@ namespace TudfConverter.WpfUI
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Read a cell value as a string, handling date and number types correctly.
+        /// Dates are formatted as ddMMyyyy (UCRF standard).
+        /// </summary>
+        private static string ReadCellAsString(IXLCell cell)
+        {
+            if (cell.DataType == XLDataType.DateTime && cell.Value.IsDateTime)
+                return cell.Value.GetDateTime().ToString("ddMMyyyy");
+            if (cell.DataType == XLDataType.Number && cell.Value.IsNumber)
+                return cell.Value.GetNumber().ToString("0.################");
+            return cell.Value.ToString().Trim();
         }
     }
 }

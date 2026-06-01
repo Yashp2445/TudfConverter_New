@@ -7,7 +7,11 @@ namespace TudfConverter.WpfUI
 {
     public class TudfProcessor
     {
-        public FileProcessingResult ProcessFile(string inputPath, string outputDir, IProgress<int> progress, IProgress<string> status)
+        public FileProcessingResult ProcessFile(
+            string inputPath,
+            string outputDir,
+            IProgress<int> progress,
+            IProgress<string> status)
         {
             var result = new FileProcessingResult();
 
@@ -38,23 +42,27 @@ namespace TudfConverter.WpfUI
 
                 var mapper = new ExcelToCustomerRecordMapper();
                 var validRecords = new List<CustomerRecord>();
+                var rejectedReasons = new List<string>();
 
                 foreach (var row in excelResult.Rows)
                 {
                     var record = mapper.Map(row);
+                    string? rejectReason = GetValidationError(record);
 
-                    bool isValid = ValidateRecord(record);
-
-                    if (isValid)
+                    if (rejectReason == null)
                         validRecords.Add(record);
                     else
+                    {
                         result.RejectedRows++;
+                        rejectedReasons.Add($"Row {row.RowNumber}: {rejectReason}");
+                    }
                 }
 
                 if (!validRecords.Any())
                 {
                     result.IsSuccess = false;
-                    result.ErrorMessage = "Validation failed. All records were rejected.";
+                    result.ErrorMessage = "Validation failed. All records were rejected.\n" +
+                                          string.Join("\n", rejectedReasons.Take(10));
                     return result;
                 }
 
@@ -69,9 +77,10 @@ namespace TudfConverter.WpfUI
                 status.Report("Saving file...");
                 progress.Report(90);
 
-                // Save to "outputs" subfolder next to the input file
-                var inputDir = Path.GetDirectoryName(inputPath) ?? "";
-                var finalOutputDir = Path.Combine(inputDir, "outputs");
+                // FIX: Save output to "outputs" subfolder of the application directory,
+                // NOT next to the input Excel file.
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var finalOutputDir = Path.Combine(appDir, "outputs");
                 if (!Directory.Exists(finalOutputDir))
                     Directory.CreateDirectory(finalOutputDir);
 
@@ -86,7 +95,7 @@ namespace TudfConverter.WpfUI
                 result.AcceptedRows = validRecords.Count;
                 result.TotalRows = excelResult.Rows.Count;
 
-                status.Report($"Done! {validRecords.Count} records generated. ({result.RejectedRows} rejected)");
+                status.Report($"Done! {validRecords.Count} records accepted, {result.RejectedRows} rejected.");
                 progress.Report(100);
             }
             catch (Exception ex)
@@ -99,41 +108,51 @@ namespace TudfConverter.WpfUI
         }
 
         private HeaderSegmentModel BuildHeaderModel(
-    Dictionary<string, string> headerData,
-    List<CustomerRecord> validRecords)
+            Dictionary<string, string> headerData,
+            List<CustomerRecord> validRecords)
         {
-            // Load base config from appsettings.json
+            // Load base config from appsettings.json (lowest priority)
             var settingsHeader = AppSettingsReader.LoadHeaderFromSettings();
-
             var firstRecord = validRecords.First();
 
-            // Excel header data can still override if present
+            // Excel header row values take precedence over appsettings
+            // Try multiple key names used across different Excel template versions
             headerData.TryGetValue("Member UserId", out var memberUserId);
-            headerData.TryGetValue("Name of the CU", out var cuName);
+            if (string.IsNullOrWhiteSpace(memberUserId))
+                headerData.TryGetValue("Reporting Member ID", out memberUserId);
+
             headerData.TryGetValue("Short Name", out var shortName);
+            if (string.IsNullOrWhiteSpace(shortName))
+                headerData.TryGetValue("Name of the CU", out shortName);
+
             headerData.TryGetValue("Cycle Identification", out var cycle);
-            headerData.TryGetValue("Cycle Date", out var cycleDate);
+            if (string.IsNullOrWhiteSpace(cycle))
+                headerData.TryGetValue("Cycle Date", out cycle);
+
             headerData.TryGetValue("Date Reported", out var dateReported);
 
-            // Priority: Excel data → appsettings → record fallback
+            // Priority: Excel → appsettings.json → account fallback
             settingsHeader.MemberUserId = !string.IsNullOrWhiteSpace(memberUserId)
-                ? memberUserId
+                ? memberUserId!
                 : !string.IsNullOrWhiteSpace(settingsHeader.MemberUserId)
                     ? settingsHeader.MemberUserId
                     : firstRecord.Account?.CurrentMemberCode ?? "UNKNOWN";
 
             settingsHeader.ShortName = !string.IsNullOrWhiteSpace(shortName)
-                ? shortName
+                ? shortName!
                 : !string.IsNullOrWhiteSpace(settingsHeader.ShortName)
                     ? settingsHeader.ShortName
                     : firstRecord.Account?.MemberShortName ?? "";
 
-            settingsHeader.ReportingCycle = !string.IsNullOrWhiteSpace(cycle) ? cycle
-                : !string.IsNullOrWhiteSpace(cycleDate) ? cycleDate
+            // Reporting Cycle: valid values per v3.74 spec:
+            // DL, W1, W2, W3, ME, DC, AH, RR, or blank/CU (legacy)
+            settingsHeader.ReportingCycle = !string.IsNullOrWhiteSpace(cycle)
+                ? cycle!
                 : !string.IsNullOrWhiteSpace(settingsHeader.ReportingCycle)
                     ? settingsHeader.ReportingCycle
                     : "CU";
 
+            // Date Reported: Excel value overrides appsettings if provided
             if (!string.IsNullOrWhiteSpace(dateReported))
             {
                 if (DateTime.TryParseExact(dateReported, "ddMMyyyy", null,
@@ -142,22 +161,100 @@ namespace TudfConverter.WpfUI
                 else if (DateTime.TryParse(dateReported, out var parsedDate2))
                     settingsHeader.DateReportedAndCertified = parsedDate2;
             }
+            // If still default (not set from appsettings or Excel), fall back to first record's date
+            else if (settingsHeader.DateReportedAndCertified == default)
+            {
+                settingsHeader.DateReportedAndCertified =
+                    firstRecord.Account?.DateReportedAndCertified ?? DateTime.Now;
+            }
 
             return settingsHeader;
         }
 
-        private bool ValidateRecord(CustomerRecord record)
+        /// <summary>
+        /// Validates a customer record per UCRF v3.74 rules.
+        /// Returns null if valid, or a description of the rejection reason.
+        /// </summary>
+        private string? GetValidationError(CustomerRecord record)
         {
-            if (string.IsNullOrWhiteSpace(record.Name?.FullName)) return false;
-            if (string.IsNullOrWhiteSpace(record.Account?.AccountNumber)) return false;
-            if (string.IsNullOrWhiteSpace(record.Account?.CurrentMemberCode)) return false;
-            if (record.Account.DateOpenedDisbursed == default(DateTime)) return false;
-            if (record.Addresses == null || !record.Addresses.Any()) return false;
+            // PN segment: name required, minimum 1 token with at least 2 alphabets
+            if (string.IsNullOrWhiteSpace(record.Name?.FullName))
+                return "Consumer name is missing";
 
+            var nameWords = (record.Name.FullName ?? "").Split(
+                new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (nameWords.Length == 0)
+                return "Consumer name has no tokens";
+
+            // TL segment required fields
+            if (string.IsNullOrWhiteSpace(record.Account?.AccountNumber))
+                return "Account number is missing";
+            if (string.IsNullOrWhiteSpace(record.Account?.CurrentMemberCode))
+                return "Member code is missing";
+            if (record.Account.DateOpenedDisbursed == default(DateTime))
+                return "Date Opened/Disbursed is missing or invalid";
+
+            // PA segment: at least one valid address required
+            if (record.Addresses == null || !record.Addresses.Any())
+                return "No address provided";
             var addr = record.Addresses.First();
-            if (string.IsNullOrWhiteSpace(addr.AddressLine1)) return false;
+            if (string.IsNullOrWhiteSpace(addr.AddressLine1))
+                return "Address line 1 is empty";
 
-            return true;
+            // Address combined length must be >= 3 chars
+            var combined = string.Concat(
+                addr.AddressLine1,
+                addr.AddressLine2 ?? "",
+                addr.AddressLine3 ?? "",
+                addr.AddressLine4 ?? "",
+                addr.AddressLine5 ?? "");
+            if (combined.Length < 3)
+                return "Address combined length is less than 3 characters";
+
+            // ID or Telephone required for accounts opened on/after Jun 1, 2007
+            if (record.Account.DateOpenedDisbursed >= new DateTime(2007, 6, 1))
+            {
+                bool hasValidId = record.Identifications != null &&
+                    record.Identifications.Any(id =>
+                        id.IdType == 1 || id.IdType == 2 || id.IdType == 3 ||
+                        id.IdType == 4 || id.IdType == 5 || id.IdType == 6 ||
+                        id.IdType == 9 || id.IdType == 10);
+
+                bool hasValidPhone = record.Telephones != null &&
+                    record.Telephones.Any(p => !string.IsNullOrWhiteSpace(p.TelephoneNumber));
+
+                if (!hasValidId && !hasValidPhone)
+                    return "No valid ID or telephone for account opened on/after June 1, 2007";
+            }
+
+            // High Credit/Sanctioned Amount is required (mandatory since v3.72)
+            if (record.Account.HighCreditSanctionedAmount <= 0)
+                return "High Credit/Sanctioned Amount must be greater than zero";
+
+            // Either NDPD (tag 15) or Asset Classification (tag 26) must be present
+            bool hasNdpd = record.Account.NumberOfDaysPastDue.HasValue;
+            bool hasAssetClass = record.Account.AssetClassification.HasValue;
+            if (!hasNdpd && !hasAssetClass)
+                return "Either Number of Days Past Due or Asset Classification must be provided";
+
+            // Cross-validation: for non-CC accounts, if NDPD > 0 then AmountOverdue must be > 0
+            var creditCardTypes = new[] { 10, 16, 31, 35 };
+            bool isCreditCard = creditCardTypes.Contains(record.Account.AccountType);
+            if (!isCreditCard &&
+                record.Account.NumberOfDaysPastDue.HasValue &&
+                record.Account.NumberOfDaysPastDue.Value > 0)
+            {
+                if (!record.Account.AmountOverdue.HasValue || record.Account.AmountOverdue.Value <= 0)
+                    return "Amount Overdue must be > 0 when Days Past Due > 0 for non-credit-card accounts";
+            }
+
+            // Date Closed validation: if closed, CurrentBalance should be 0 or negative
+            if (record.Account.DateClosed.HasValue &&
+                record.Account.CurrentBalance > 0 &&
+                !record.Account.IsCurrentBalanceNegative)
+                return "Date Closed is set but Current Balance is positive";
+
+            return null; // valid
         }
     }
 }
