@@ -67,9 +67,9 @@ namespace TudfConverter.WpfUI
             sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.ShortName, 16));
             sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.ReportingCycle, 2));
             sb.Append(header.DateReportedAndCertified.ToString("ddMMyyyy"));
-            sb.Append(new string(' ', 30));  // Future use (pos 63-92)
-            sb.Append('A');                  // Future use (pos 93)
-            sb.Append("00000");              // Future use (pos 94-98)
+            sb.Append(new string(' ', 30));  
+            sb.Append('A');                 
+            sb.Append("00000");              
             sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.MemberData, 48));
 
             var result = sb.ToString();
@@ -114,7 +114,6 @@ namespace TudfConverter.WpfUI
                 sb.Append(TudfFieldFormatter.FormatVariableField(tag, packedTags[i]));
             }
 
-            // Tag 06 is reserved/skipped per spec
             if (name.DateOfBirth.HasValue) sb.Append(TudfFieldFormatter.FormatVariableDateField("07", name.DateOfBirth));
             if (name.Gender.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("08", name.Gender.Value.ToString()));
 
@@ -147,7 +146,8 @@ namespace TudfConverter.WpfUI
             sb.Append(segTag);
 
             sb.Append(TudfFieldFormatter.FormatVariableField("01", phone.TelephoneNumber));
-            if (!string.IsNullOrEmpty(phone.TelephoneExtension)) sb.Append(TudfFieldFormatter.FormatVariableField("02", phone.TelephoneExtension));
+            if (!string.IsNullOrEmpty(phone.TelephoneExtension))
+                sb.Append(TudfFieldFormatter.FormatVariableField("02", phone.TelephoneExtension));
             sb.Append(TudfFieldFormatter.FormatVariableField("03", phone.TelephoneType));
 
             return sb.ToString();
@@ -173,11 +173,17 @@ namespace TudfConverter.WpfUI
             sb.Append(segTag);
 
             sb.Append(TudfFieldFormatter.FormatVariableField("01", address.AddressLine1));
-            if (!string.IsNullOrEmpty(address.AddressLine2)) sb.Append(TudfFieldFormatter.FormatVariableField("02", address.AddressLine2));
-            if (!string.IsNullOrEmpty(address.AddressLine3)) sb.Append(TudfFieldFormatter.FormatVariableField("03", address.AddressLine3));
-            if (!string.IsNullOrEmpty(address.AddressLine4)) sb.Append(TudfFieldFormatter.FormatVariableField("04", address.AddressLine4));
-            if (!string.IsNullOrEmpty(address.AddressLine5)) sb.Append(TudfFieldFormatter.FormatVariableField("05", address.AddressLine5));
-            if (!string.IsNullOrEmpty(address.StateCode)) sb.Append(TudfFieldFormatter.FormatVariableField("06", TudfFieldFormatter.FormatFixedNumeric(address.StateCode, 2)));
+            if (!string.IsNullOrEmpty(address.AddressLine2))
+                sb.Append(TudfFieldFormatter.FormatVariableField("02", address.AddressLine2));
+            if (!string.IsNullOrEmpty(address.AddressLine3))
+                sb.Append(TudfFieldFormatter.FormatVariableField("03", address.AddressLine3));
+            if (!string.IsNullOrEmpty(address.AddressLine4))
+                sb.Append(TudfFieldFormatter.FormatVariableField("04", address.AddressLine4));
+            if (!string.IsNullOrEmpty(address.AddressLine5))
+                sb.Append(TudfFieldFormatter.FormatVariableField("05", address.AddressLine5));
+
+            if (!string.IsNullOrEmpty(address.StateCode))
+                sb.Append(TudfFieldFormatter.FormatVariableField("06", TudfFieldFormatter.FormatFixedNumeric(address.StateCode, 2)));
 
             if (!string.IsNullOrEmpty(address.PinCode))
             {
@@ -192,7 +198,8 @@ namespace TudfConverter.WpfUI
             var addrCat = address.AddressCategory.HasValue ? address.AddressCategory.Value.ToString("D2") : "04";
             sb.Append(TudfFieldFormatter.FormatVariableField("08", addrCat));
 
-            if (address.ResidenceCode.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("09", address.ResidenceCode.Value.ToString("D2")));
+            if (address.ResidenceCode.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("09", address.ResidenceCode.Value.ToString("D2")));
 
             return sb.ToString();
         }
@@ -204,25 +211,36 @@ namespace TudfConverter.WpfUI
             sb.Append("04");
             sb.Append("T001");
 
-            // Tags 01-05: Always present required fields
+            // Tag 01: Current/New Reporting Member Code (fixed 10, but write as variable)
             sb.Append(TudfFieldFormatter.FormatVariableField("01", account.CurrentMemberCode));
-            if (!string.IsNullOrEmpty(account.MemberShortName)) sb.Append(TudfFieldFormatter.FormatVariableField("02", account.MemberShortName));
-            sb.Append(TudfFieldFormatter.FormatVariableField("03", account.AccountNumber));
-            sb.Append(TudfFieldFormatter.FormatVariableField("04", account.AccountType.ToString("D2")));
-            sb.Append(TudfFieldFormatter.FormatVariableField("05", account.OwnershipIndicator.ToString("D2")));
 
-            // Tags 06, 07 are RESERVED FOR FUTURE USE per spec — skip them
+            // Tag 02: Member Short Name (optional)
+            if (!string.IsNullOrEmpty(account.MemberShortName))
+                sb.Append(TudfFieldFormatter.FormatVariableField("02", account.MemberShortName));
+
+            // Tag 03: Account Number
+            sb.Append(TudfFieldFormatter.FormatVariableField("03", account.AccountNumber));
+
+            // Tag 04: Account Type (2-digit zero-padded)
+            sb.Append(TudfFieldFormatter.FormatVariableField("04", account.AccountType.ToString("D2")));
+
+            // Tag 05: Ownership Indicator — NOT zero-padded, just the digit value
+            sb.Append(TudfFieldFormatter.FormatVariableField("05", account.OwnershipIndicator.ToString()));
+
+            // Tags 06, 07 are RESERVED FOR FUTURE USE per spec — skip
 
             // Tag 08: Date Opened/Disbursed (Required)
             sb.Append(TudfFieldFormatter.FormatVariableDateField("08", account.DateOpenedDisbursed));
 
             // Tag 09: Date of Last Payment (Optional)
-            if (account.DateOfLastPayment.HasValue) sb.Append(TudfFieldFormatter.FormatVariableDateField("09", account.DateOfLastPayment));
+            if (account.DateOfLastPayment.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableDateField("09", account.DateOfLastPayment));
 
             // Tag 10: Date Closed (Optional)
-            if (account.DateClosed.HasValue) sb.Append(TudfFieldFormatter.FormatVariableDateField("10", account.DateClosed));
+            if (account.DateClosed.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableDateField("10", account.DateClosed));
 
-            // Tag 11: Date Reported and Certified (See Comments - defaults to header date)
+            // Tag 11: Date Reported and Certified
             sb.Append(TudfFieldFormatter.FormatVariableDateField("11", account.DateReportedAndCertified));
 
             // Tag 12: High Credit/Sanctioned Amount (Required)
@@ -235,89 +253,116 @@ namespace TudfConverter.WpfUI
             else
                 sb.Append(TudfFieldFormatter.FormatSignedAmountField("13", account.CurrentBalance, account.IsCurrentBalanceNegative));
 
-            // Tag 14: Amount Overdue (Optional)
-            if (account.AmountOverdue.HasValue && account.AmountOverdue.Value > 0)
+            // Tag 14: Amount Overdue — write even when 0 (per expected output pattern)
+            // When overdue is null (not provided), skip. When 0 or positive, always write.
+            if (account.AmountOverdue.HasValue)
                 sb.Append(TudfFieldFormatter.FormatNumericVariableField("14", account.AmountOverdue));
 
-            // Tag 15: Number of Days Past Due (See Comments)
+            // Tag 15: Number of Days Past Due
+            // Write as actual value string (not zero-padded to 3 digits) when value is 0
+            // For positive values cap at 900
             if (account.NumberOfDaysPastDue.HasValue)
             {
                 var ndpd = account.NumberOfDaysPastDue.Value;
                 if (ndpd > 900) ndpd = 900;
-                sb.Append(TudfFieldFormatter.FormatVariableField("15", ndpd.ToString("D3")));
+                // Write as plain number string (no leading zeros for zero, 3-digit for >0)
+                var ndpdStr = ndpd == 0 ? "0" : ndpd.ToString("D3");
+                sb.Append(TudfFieldFormatter.FormatVariableField("15", ndpdStr));
             }
             else if (account.AmountOverdue.HasValue && account.AmountOverdue > 0 && isCC)
             {
                 sb.Append(TudfFieldFormatter.FormatVariableField("15", "000"));
             }
 
-            // Tags 16-20: Old member/account info (Optional, only if changed)
-            if (!string.IsNullOrEmpty(account.OldReportingMemberCode)) sb.Append(TudfFieldFormatter.FormatVariableField("16", account.OldReportingMemberCode));
-            if (!string.IsNullOrEmpty(account.OldMemberShortName)) sb.Append(TudfFieldFormatter.FormatVariableField("17", account.OldMemberShortName));
-            if (!string.IsNullOrEmpty(account.OldAccountNumber)) sb.Append(TudfFieldFormatter.FormatVariableField("18", account.OldAccountNumber));
-            if (account.OldAccountType.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("19", account.OldAccountType.Value.ToString("D2")));
-            if (account.OldOwnershipIndicator.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("20", account.OldOwnershipIndicator.Value.ToString("D2")));
+            // Tags 16-20: Old member/account info (Optional)
+            if (!string.IsNullOrEmpty(account.OldReportingMemberCode))
+                sb.Append(TudfFieldFormatter.FormatVariableField("16", account.OldReportingMemberCode));
+            if (!string.IsNullOrEmpty(account.OldMemberShortName))
+                sb.Append(TudfFieldFormatter.FormatVariableField("17", account.OldMemberShortName));
+            if (!string.IsNullOrEmpty(account.OldAccountNumber))
+                sb.Append(TudfFieldFormatter.FormatVariableField("18", account.OldAccountNumber));
+            if (account.OldAccountType.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("19", account.OldAccountType.Value.ToString("D2")));
+            if (account.OldOwnershipIndicator.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("20", account.OldOwnershipIndicator.Value.ToString("D2")));
 
             // Tag 21: Suit Filed / Wilful Default (Optional)
-            if (account.SuitFiledWilfulDefault.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("21", account.SuitFiledWilfulDefault.Value.ToString("D2")));
+            if (account.SuitFiledWilfulDefault.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("21", account.SuitFiledWilfulDefault.Value.ToString("D2")));
 
-            // Tag 22: Credit Facility Status (When Applicable)
-            // NOTE: Tags 23-25 are RESERVED FOR FUTURE USE per spec — skip them
-            if (account.CreditFacilityStatus.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("22", account.CreditFacilityStatus.Value.ToString("D2")));
+            // Tag 22: Credit Facility Status
+            // Tags 23-25 are RESERVED FOR FUTURE USE — skip
+            if (account.CreditFacilityStatus.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("22", account.CreditFacilityStatus.Value.ToString("D2")));
 
-            // Tag 26: Asset Classification (See Comments — either this or tag 15 must be present)
-            // NOTE: Tags 23-25 are reserved, so next valid tag after 22 is 26
-            if (account.AssetClassification.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("26", account.AssetClassification.Value.ToString("D2")));
-
-            // Tags 27-33 are RESERVED FOR FUTURE USE per spec — skip them
+            // Tag 26: Asset Classification (either tag 15 or 26 must be present)
+            // Tags 27-33 reserved — skip
+            if (account.AssetClassification.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("26", account.AssetClassification.Value.ToString("D2")));
 
             // Tag 34: Value of Collateral (Optional)
-            if (account.ValueOfCollateral.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("34", account.ValueOfCollateral));
+            if (account.ValueOfCollateral.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("34", account.ValueOfCollateral));
 
             // Tag 35: Type of Collateral (Optional)
-            if (account.TypeOfCollateral.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("35", account.TypeOfCollateral.Value.ToString("D2")));
+            if (account.TypeOfCollateral.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("35", account.TypeOfCollateral.Value.ToString("D2")));
 
-            // Tag 36: Credit Limit (Optional — only for account types 10,16,31,35)
-            if (account.CreditLimit.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("36", account.CreditLimit));
+            // Tag 36: Credit Limit (only for CC types)
+            if (account.CreditLimit.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("36", account.CreditLimit));
 
-            // Tag 37: Cash Limit (Optional — only for account types 10,16,31,35)
-            if (account.CashLimit.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("37", account.CashLimit));
+            // Tag 37: Cash Limit (only for CC types)
+            if (account.CashLimit.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("37", account.CashLimit));
 
             // Tag 38: Rate Of Interest (Optional)
-            if (!string.IsNullOrEmpty(account.RateOfInterest)) sb.Append(TudfFieldFormatter.FormatVariableField("38", account.RateOfInterest));
+            if (!string.IsNullOrEmpty(account.RateOfInterest))
+                sb.Append(TudfFieldFormatter.FormatVariableField("38", account.RateOfInterest));
 
             // Tag 39: Repayment Tenure (Optional)
-            if (account.RepaymentTenure.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("39", account.RepaymentTenure.Value.ToString("D3")));
+            if (account.RepaymentTenure.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("39", account.RepaymentTenure.Value.ToString("D3")));
 
             // Tag 40: EMI Amount (Optional)
-            if (account.EmiAmount.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("40", account.EmiAmount));
+            if (account.EmiAmount.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("40", account.EmiAmount));
 
-            // Tag 41: Written-off Amount Total (See Comments)
-            if (account.WrittenOffAmountTotal.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("41", account.WrittenOffAmountTotal));
+            // Tag 41: Written-off Amount Total
+            if (account.WrittenOffAmountTotal.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("41", account.WrittenOffAmountTotal));
 
-            // Tag 42: Written-off Amount Principal (See Comments)
-            if (account.WrittenOffAmountPrincipal.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("42", account.WrittenOffAmountPrincipal));
+            // Tag 42: Written-off Amount Principal
+            if (account.WrittenOffAmountPrincipal.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("42", account.WrittenOffAmountPrincipal));
 
-            // Tag 43: Settlement Amount (See Comments)
-            if (account.SettlementAmount.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("43", account.SettlementAmount));
+            // Tag 43: Settlement Amount
+            if (account.SettlementAmount.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("43", account.SettlementAmount));
 
             // Tag 44: Payment Frequency (Optional)
-            if (account.PaymentFrequency.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("44", account.PaymentFrequency.Value.ToString("D2")));
+            if (account.PaymentFrequency.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("44", account.PaymentFrequency.Value.ToString("D2")));
 
             // Tag 45: Actual Payment Amount (Optional)
-            if (account.ActualPaymentAmount.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("45", account.ActualPaymentAmount));
+            if (account.ActualPaymentAmount.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("45", account.ActualPaymentAmount));
 
             // Tag 46: Occupation Code (Optional)
-            if (account.OccupationCode.HasValue) sb.Append(TudfFieldFormatter.FormatVariableField("46", account.OccupationCode.Value.ToString("D2")));
+            if (account.OccupationCode.HasValue)
+                sb.Append(TudfFieldFormatter.FormatVariableField("46", account.OccupationCode.Value.ToString("D2")));
 
             // Tag 47: Income (Optional)
-            if (account.Income.HasValue) sb.Append(TudfFieldFormatter.FormatNumericVariableField("47", account.Income));
+            if (account.Income.HasValue)
+                sb.Append(TudfFieldFormatter.FormatNumericVariableField("47", account.Income));
 
             // Tag 48: Net/Gross Income Indicator (Optional)
-            if (!string.IsNullOrEmpty(account.NetGrossIncomeIndicator)) sb.Append(TudfFieldFormatter.FormatVariableField("48", account.NetGrossIncomeIndicator));
+            if (!string.IsNullOrEmpty(account.NetGrossIncomeIndicator))
+                sb.Append(TudfFieldFormatter.FormatVariableField("48", account.NetGrossIncomeIndicator));
 
             // Tag 49: Monthly/Annual Income Indicator (Optional)
-            if (!string.IsNullOrEmpty(account.MonthlyAnnualIncomeIndicator)) sb.Append(TudfFieldFormatter.FormatVariableField("49", account.MonthlyAnnualIncomeIndicator));
+            if (!string.IsNullOrEmpty(account.MonthlyAnnualIncomeIndicator))
+                sb.Append(TudfFieldFormatter.FormatVariableField("49", account.MonthlyAnnualIncomeIndicator));
 
             return sb.ToString();
         }
@@ -327,7 +372,6 @@ namespace TudfConverter.WpfUI
             var sb = new StringBuilder();
             var segTag = "H" + history.SegmentIndex.ToString("D2");
 
-            // FIX: Segment tag is "TH" not "AH" per spec
             sb.Append("TH");
             sb.Append("03");
             sb.Append(segTag);

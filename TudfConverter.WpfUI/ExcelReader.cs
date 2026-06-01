@@ -88,29 +88,72 @@ namespace TudfConverter.WpfUI
             return model;
         }
 
+        /// <summary>
+        /// Split address text into lines of max maxLen chars, respecting word boundaries.
+        /// </summary>
+        private static List<string> SplitAddressIntoLines(string text, int maxLen)
+        {
+            var lines = new List<string>();
+            if (string.IsNullOrWhiteSpace(text)) return lines;
+
+            var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var current = new System.Text.StringBuilder();
+
+            foreach (var word in words)
+            {
+                if (current.Length == 0)
+                {
+                    // If single word longer than maxLen, truncate
+                    current.Append(word.Length > maxLen ? word.Substring(0, maxLen) : word);
+                }
+                else if (current.Length + 1 + word.Length <= maxLen)
+                {
+                    current.Append(' ');
+                    current.Append(word);
+                }
+                else
+                {
+                    lines.Add(current.ToString());
+                    current.Clear();
+                    current.Append(word.Length > maxLen ? word.Substring(0, maxLen) : word);
+                }
+            }
+
+            if (current.Length > 0)
+                lines.Add(current.ToString());
+
+            return lines;
+        }
+
         private List<AddressModel> MapAddresses(RawExcelRow row)
         {
             var addresses = new List<AddressModel>();
 
-            var address1 = GetValue(row, ExcelColumnMap.AddressLine1);
-            if (!string.IsNullOrWhiteSpace(address1))
+            var address1Raw = GetValue(row, ExcelColumnMap.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(address1Raw))
             {
-                var addr = new AddressModel
-                {
-                    SegmentIndex = 1,
-                    AddressLine1 = address1,
-                    AddressLine2 = GetValue(row, ExcelColumnMap.AddressLine2),
-                    StateCode = GetValue(row, ExcelColumnMap.StateCode1),
-                    PinCode = GetValue(row, ExcelColumnMap.PinCode1)
-                };
+                var addr = new AddressModel { SegmentIndex = 1 };
 
-                if (int.TryParse(GetValue(row, ExcelColumnMap.AddressCategory1), out int category)) addr.AddressCategory = category;
-                if (int.TryParse(GetValue(row, ExcelColumnMap.ResidenceCode1), out int residence)) addr.ResidenceCode = residence;
+                // Remove hyphens from address string, then split into max 40-char lines
+                var cleanAddress = address1Raw.Replace("-", "");
+                var lines = SplitAddressIntoLines(cleanAddress, 40);
+
+                addr.AddressLine1 = lines.Count > 0 ? lines[0] : cleanAddress;
+                if (lines.Count > 1) addr.AddressLine2 = lines[1];
+                if (lines.Count > 2) addr.AddressLine3 = lines[2];
+                if (lines.Count > 3) addr.AddressLine4 = lines[3];
+                if (lines.Count > 4) addr.AddressLine5 = lines[4];
+
+                addr.StateCode = GetValue(row, ExcelColumnMap.StateCode1);
+                addr.PinCode = GetValue(row, ExcelColumnMap.PinCode1);
+
+                if (int.TryParse(GetValue(row, ExcelColumnMap.AddressCategory1), out int category))
+                    addr.AddressCategory = category;
+                if (int.TryParse(GetValue(row, ExcelColumnMap.ResidenceCode1), out int residence))
+                    addr.ResidenceCode = residence;
 
                 addresses.Add(addr);
             }
-
-            var address2 = GetValue(row, ExcelColumnMap.AddressLine2);
 
             return addresses;
         }
@@ -188,7 +231,7 @@ namespace TudfConverter.WpfUI
         {
             var history = new List<AccountHistoryModel>();
             int index = 1;
-            
+
             for (int i = 1; i <= 47; i++)
             {
                 var dpdKey = $"Month{i}_DPD";
@@ -197,7 +240,14 @@ namespace TudfConverter.WpfUI
                 if (row.Columns.ContainsKey(dpdKey) || row.Columns.ContainsKey(balKey))
                 {
                     TryParseLong(GetValue(row, balKey), out var bal);
-                    history.Add(new AccountHistoryModel { SegmentIndex = index++, AccountHistoryDate = default, AssetClassificationNdpd = GetValue(row, dpdKey) ?? string.Empty, CurrentBalance = bal, IsCurrentBalanceNegative = false });
+                    history.Add(new AccountHistoryModel
+                    {
+                        SegmentIndex = index++,
+                        AccountHistoryDate = default,
+                        AssetClassificationNdpd = GetValue(row, dpdKey) ?? string.Empty,
+                        CurrentBalance = bal,
+                        IsCurrentBalanceNegative = false
+                    });
                 }
             }
 
@@ -268,7 +318,8 @@ namespace TudfConverter.WpfUI
                     foreach (var cell in row.CellsUsed())
                     {
                         var text = cell.Value.ToString().Trim();
-                        if (text.Equals(ExcelColumnMap.ConsumerName, StringComparison.OrdinalIgnoreCase) || text.Equals(ExcelColumnMap.CurrentNewMemberCode, StringComparison.OrdinalIgnoreCase))
+                        if (text.Equals(ExcelColumnMap.ConsumerName, StringComparison.OrdinalIgnoreCase) ||
+                            text.Equals(ExcelColumnMap.CurrentNewMemberCode, StringComparison.OrdinalIgnoreCase))
                         {
                             found = true;
                             break;
@@ -295,7 +346,8 @@ namespace TudfConverter.WpfUI
                             int colNum = headerCell.Address.ColumnNumber;
                             var valCell = nextRow.Cell(colNum);
                             var val = valCell.Value.ToString().Trim();
-                            if (valCell.DataType == XLDataType.DateTime && valCell.Value.IsDateTime) val = valCell.Value.GetDateTime().ToString("ddMMyyyy");
+                            if (valCell.DataType == XLDataType.DateTime && valCell.Value.IsDateTime)
+                                val = valCell.Value.GetDateTime().ToString("ddMMyyyy");
                             if (!string.IsNullOrEmpty(val)) result.HeaderData[key] = val;
                         }
                         skipNextRowsCount = 1;
@@ -306,7 +358,8 @@ namespace TudfConverter.WpfUI
                         int colNum = keyCell.Address.ColumnNumber;
                         var valCell = row.Cell(colNum + 1);
                         var val = valCell.Value.ToString().Trim();
-                        if (valCell.DataType == XLDataType.DateTime && valCell.Value.IsDateTime) val = valCell.Value.GetDateTime().ToString("ddMMyyyy");
+                        if (valCell.DataType == XLDataType.DateTime && valCell.Value.IsDateTime)
+                            val = valCell.Value.GetDateTime().ToString("ddMMyyyy");
                         if (!string.IsNullOrEmpty(val)) result.HeaderData[key] = val;
                     }
                     else
@@ -318,7 +371,8 @@ namespace TudfConverter.WpfUI
                             var val = cellsUsed[1].Value.ToString().Trim();
                             if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(val))
                             {
-                                if (cellsUsed[1].DataType == XLDataType.DateTime && cellsUsed[1].Value.IsDateTime) val = cellsUsed[1].Value.GetDateTime().ToString("ddMMyyyy");
+                                if (cellsUsed[1].DataType == XLDataType.DateTime && cellsUsed[1].Value.IsDateTime)
+                                    val = cellsUsed[1].Value.GetDateTime().ToString("ddMMyyyy");
                                 result.HeaderData[key] = val;
                             }
                         }
@@ -348,7 +402,6 @@ namespace TudfConverter.WpfUI
                 }
 
                 var rowsUsed = worksheet.RowsUsed().Where(r => r.RowNumber() > headerRow.RowNumber());
-                int rowCount = 0;
 
                 foreach (var row in rowsUsed)
                 {
@@ -371,15 +424,17 @@ namespace TudfConverter.WpfUI
                         var cell = row.Cell(kvp.Value);
                         string cellValue = string.Empty;
 
-                        if (cell.DataType == XLDataType.DateTime && cell.Value.IsDateTime) cellValue = cell.Value.GetDateTime().ToString("dd/MM/yyyy");
-                        else if (cell.DataType == XLDataType.Number && cell.Value.IsNumber) cellValue = cell.Value.GetNumber().ToString("0.################");
-                        else cellValue = cell.Value.ToString().Trim();
+                        if (cell.DataType == XLDataType.DateTime && cell.Value.IsDateTime)
+                            cellValue = cell.Value.GetDateTime().ToString("dd/MM/yyyy");
+                        else if (cell.DataType == XLDataType.Number && cell.Value.IsNumber)
+                            cellValue = cell.Value.GetNumber().ToString("0.################");
+                        else
+                            cellValue = cell.Value.ToString().Trim();
 
                         rawRow.Columns[kvp.Key] = cellValue;
                     }
 
                     result.Rows.Add(rawRow);
-                    rowCount++;
                 }
             }
             catch (Exception ex)
