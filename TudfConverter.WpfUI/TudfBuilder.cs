@@ -67,9 +67,9 @@ namespace TudfConverter.WpfUI
             sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.ShortName, 16));
             sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.ReportingCycle, 2));
             sb.Append(header.DateReportedAndCertified.ToString("ddMMyyyy"));
-            sb.Append(new string(' ', 30));  
-            sb.Append('A');                 
-            sb.Append("00000");              
+            sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.FutureUse1, 30));  
+            sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.FutureUse2, 1));   
+            sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.FutureUse3, 5));   
             sb.Append(TudfFieldFormatter.FormatFixedAlpha(header.MemberData, 48));
 
             var result = sb.ToString();

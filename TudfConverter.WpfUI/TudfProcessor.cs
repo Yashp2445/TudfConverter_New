@@ -99,49 +99,51 @@ namespace TudfConverter.WpfUI
         }
 
         private HeaderSegmentModel BuildHeaderModel(
-            Dictionary<string, string> headerData,
-            List<CustomerRecord> validRecords)
+    Dictionary<string, string> headerData,
+    List<CustomerRecord> validRecords)
         {
+            // Load base config from appsettings.json
+            var settingsHeader = AppSettingsReader.LoadHeaderFromSettings();
+
             var firstRecord = validRecords.First();
 
+            // Excel header data can still override if present
             headerData.TryGetValue("Member UserId", out var memberUserId);
-            headerData.TryGetValue("Reporting Member ID", out var altMemberId);
             headerData.TryGetValue("Name of the CU", out var cuName);
             headerData.TryGetValue("Short Name", out var shortName);
             headerData.TryGetValue("Cycle Identification", out var cycle);
             headerData.TryGetValue("Cycle Date", out var cycleDate);
             headerData.TryGetValue("Date Reported", out var dateReported);
 
-            var resolvedMemberUserId = !string.IsNullOrWhiteSpace(memberUserId)
+            // Priority: Excel data → appsettings → record fallback
+            settingsHeader.MemberUserId = !string.IsNullOrWhiteSpace(memberUserId)
                 ? memberUserId
-                : (!string.IsNullOrWhiteSpace(altMemberId) ? altMemberId
-                   : firstRecord.Account?.CurrentMemberCode ?? "UNKNOWN");
+                : !string.IsNullOrWhiteSpace(settingsHeader.MemberUserId)
+                    ? settingsHeader.MemberUserId
+                    : firstRecord.Account?.CurrentMemberCode ?? "UNKNOWN";
 
-            var resolvedShortName = !string.IsNullOrWhiteSpace(shortName)
+            settingsHeader.ShortName = !string.IsNullOrWhiteSpace(shortName)
                 ? shortName
-                : firstRecord.Account?.MemberShortName ?? string.Empty;
+                : !string.IsNullOrWhiteSpace(settingsHeader.ShortName)
+                    ? settingsHeader.ShortName
+                    : firstRecord.Account?.MemberShortName ?? "";
 
-            var resolvedCycle = !string.IsNullOrWhiteSpace(cycle) ? cycle
-                : (!string.IsNullOrWhiteSpace(cycleDate) ? cycleDate : "CU");
+            settingsHeader.ReportingCycle = !string.IsNullOrWhiteSpace(cycle) ? cycle
+                : !string.IsNullOrWhiteSpace(cycleDate) ? cycleDate
+                : !string.IsNullOrWhiteSpace(settingsHeader.ReportingCycle)
+                    ? settingsHeader.ReportingCycle
+                    : "CU";
 
-            DateTime resolvedDate = firstRecord.Account?.DateReportedAndCertified ?? DateTime.Now;
             if (!string.IsNullOrWhiteSpace(dateReported))
             {
                 if (DateTime.TryParseExact(dateReported, "ddMMyyyy", null,
                     System.Globalization.DateTimeStyles.None, out var parsedDate))
-                    resolvedDate = parsedDate;
+                    settingsHeader.DateReportedAndCertified = parsedDate;
                 else if (DateTime.TryParse(dateReported, out var parsedDate2))
-                    resolvedDate = parsedDate2;
+                    settingsHeader.DateReportedAndCertified = parsedDate2;
             }
 
-            return new HeaderSegmentModel
-            {
-                MemberUserId = resolvedMemberUserId,
-                ShortName = resolvedShortName,
-                ReportingCycle = resolvedCycle,
-                DateReportedAndCertified = resolvedDate,
-                MemberData = string.Empty
-            };
+            return settingsHeader;
         }
 
         private bool ValidateRecord(CustomerRecord record)
