@@ -103,11 +103,25 @@ namespace TudfConverter.WpfUI
 
     public class HeaderSegmentModel
     {
+        public string SegmentTag { get; set; } = "TUDF";
+
+        public string Version { get; set; } = "12";
+
         public string MemberUserId { get; set; } = "";
-        public string? ShortName { get; set; }
-        public string? ReportingCycle { get; set; }
-        public DateTime DateReportedAndCertified { get; set; }
-        public string? MemberData { get; set; }
+
+        public string MemberShortName { get; set; } = "";
+
+        public string ReportingCycle { get; set; } = "";
+
+        public string DateReported { get; set; } = "";
+
+        public string FutureUse1 { get; set; } = "";
+
+        public string FutureUse2 { get; set; } = "";
+
+        public string FutureUse3 { get; set; } = "00000";
+
+        public string MemberData { get; set; } = "";
     }
 
     public class AccountHistoryModel
