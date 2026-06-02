@@ -3,8 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using Microsoft.Win32;
 using TudfConverter.WpfUI.ViewModels;
 
@@ -17,6 +18,7 @@ namespace TudfConverter.WpfUI
         public MainWindow()
         {
             InitializeComponent();
+            SetNavActive(true); // Initialize visual state on startup
         }
 
         private void BtnBrowse_Click(object sender, RoutedEventArgs e)
@@ -61,38 +63,45 @@ namespace TudfConverter.WpfUI
 
         private async void BtnGenerate_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtInputFilePath.Text))
-            {
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(txtInputFilePath.Text)) return;
 
             btnGenerate.IsEnabled = false;
             btnBrowse.IsEnabled = false;
-            
+
             panelStatus.Visibility = Visibility.Visible;
             borderSuccess.Visibility = Visibility.Collapsed;
             btnViewErrors.Visibility = Visibility.Collapsed;
-            pbProgress.Value = 0;
-            txtStatus.Text = "Starting process...";
 
-            string inputPath = txtInputFilePath.Text;
-            string outputDir = Path.GetDirectoryName(inputPath) ?? "";
+            pbProgress.IsIndeterminate = true;
+            txtStatus.Text = "Initializing processing engine...";
+
+            string inputPath = txtInputFilePath.Text ?? string.Empty;
+
+            // FIX: Explicitly using System.IO.Path to avoid ambiguity with System.Windows.Shapes.Path
+            string outputDir = System.IO.Path.GetDirectoryName(inputPath) ?? string.Empty;
 
             try
             {
-                var progress = new Progress<int>(value => pbProgress.Value = value);
-                var status = new Progress<string>(message => txtStatus.Text = message);
+                var progress = new Progress<int>(value =>
+                {
+                    if (pbProgress.IsIndeterminate) pbProgress.IsIndeterminate = false;
+                    pbProgress.Value = value;
+                });
+
+                var status = new Progress<string>(message => txtStatus.Text = message ?? string.Empty);
 
                 var processor = new TudfProcessor();
                 var result = await Task.Run(() => processor.ProcessFile(inputPath, outputDir, progress, status));
 
                 if (result.IsSuccess)
                 {
+                    pbProgress.IsIndeterminate = false;
                     pbProgress.Value = 100;
+
                     panelStatus.Visibility = Visibility.Collapsed;
                     borderSuccess.Visibility = Visibility.Visible;
-                    
-                    _outputFilePath = result.GeneratedFilePath;
+
+                    _outputFilePath = result.GeneratedFilePath ?? string.Empty;
                     txtOutputPath.Text = _outputFilePath;
                     txtOutputPath.ToolTip = _outputFilePath;
 
@@ -100,13 +109,12 @@ namespace TudfConverter.WpfUI
                     txtAcceptedRows.Text = result.AcceptedRows.ToString();
                     txtRejectedRows.Text = result.RejectedRows.ToString();
 
-                    // Populate validation results
                     var vm = new ValidationResultsViewModel();
                     vm.LoadResults(result.ValidationResults ?? new System.Collections.Generic.List<RecordValidationResult>());
                     validationResultsView.DataContext = vm;
                     validationTab.IsEnabled = true;
 
-                    bool hasErrors = result.ValidationResults != null && result.ValidationResults.Any(r => r.Errors.Any());
+                    bool hasErrors = result.ValidationResults != null && result.ValidationResults.Any(r => r.Errors != null && r.Errors.Any());
                     btnViewErrors.Visibility = hasErrors ? Visibility.Visible : Visibility.Collapsed;
 
                     if (hasErrors)
@@ -118,9 +126,9 @@ namespace TudfConverter.WpfUI
                 }
                 else
                 {
-                    txtStatus.Text = "Error: " + result.ErrorMessage;
+                    pbProgress.IsIndeterminate = false;
+                    txtStatus.Text = "Error: " + (result.ErrorMessage ?? "Unknown processing error occurred.");
 
-                    // Still populate validation results even on failure so user can see details
                     var vm = new ValidationResultsViewModel();
                     vm.LoadResults(result.ValidationResults ?? new System.Collections.Generic.List<RecordValidationResult>());
                     validationResultsView.DataContext = vm;
@@ -129,6 +137,7 @@ namespace TudfConverter.WpfUI
             }
             catch (Exception ex)
             {
+                pbProgress.IsIndeterminate = false;
                 txtStatus.Text = "Unexpected Error: " + ex.Message;
             }
             finally
@@ -137,8 +146,6 @@ namespace TudfConverter.WpfUI
                 btnBrowse.IsEnabled = true;
             }
         }
-
-        // ────── Sidebar navigation ──────
 
         private void BtnNavProcess_Click(object sender, RoutedEventArgs e)
         {
@@ -159,18 +166,35 @@ namespace TudfConverter.WpfUI
 
         private void SetNavActive(bool isProcessActive)
         {
-            // Update Process button appearance
-            btnNavProcess.Background = isProcessActive
-                ? (System.Windows.Media.Brush)FindResource("SoftAccent")
-                : System.Windows.Media.Brushes.Transparent;
-            // Update Validation button appearance  
-            btnNavValidation.Background = !isProcessActive
-                ? (System.Windows.Media.Brush)FindResource("SoftAccent")
-                : System.Windows.Media.Brushes.Transparent;
-        }
+            // Toggle Process Button visuals
+            btnNavProcess.Background = isProcessActive ? (Brush)FindResource("SoftAccent") : Brushes.Transparent;
+            if (btnNavProcess.Template.FindName("ActiveIndicator", btnNavProcess) is Border processIndicator)
+                processIndicator.Visibility = isProcessActive ? Visibility.Visible : Visibility.Collapsed;
 
-        private void MainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
+            // FIX: Explicitly using System.Windows.Shapes.Path to avoid ambiguity
+            if (btnNavProcess.Template.FindName("Icon", btnNavProcess) is System.Windows.Shapes.Path processIcon)
+                processIcon.Fill = isProcessActive ? (Brush)FindResource("PrimaryAccent") : (Brush)FindResource("TextTertiary");
+
+            if (btnNavProcess.Template.FindName("Label", btnNavProcess) is TextBlock processLabel)
+            {
+                processLabel.Foreground = isProcessActive ? (Brush)FindResource("PrimaryAccent") : (Brush)FindResource("TextSecondary");
+                processLabel.FontWeight = isProcessActive ? FontWeights.SemiBold : FontWeights.Medium;
+            }
+
+            // Toggle Validation Button visuals
+            btnNavValidation.Background = !isProcessActive ? (Brush)FindResource("SoftAccent") : Brushes.Transparent;
+            if (btnNavValidation.Template.FindName("ActiveIndicator", btnNavValidation) is Border valIndicator)
+                valIndicator.Visibility = !isProcessActive ? Visibility.Visible : Visibility.Collapsed;
+
+            // FIX: Explicitly using System.Windows.Shapes.Path to avoid ambiguity
+            if (btnNavValidation.Template.FindName("Icon", btnNavValidation) is System.Windows.Shapes.Path valIcon)
+                valIcon.Fill = !isProcessActive ? (Brush)FindResource("PrimaryAccent") : (Brush)FindResource("TextTertiary");
+
+            if (btnNavValidation.Template.FindName("Label", btnNavValidation) is TextBlock valLabel)
+            {
+                valLabel.Foreground = !isProcessActive ? (Brush)FindResource("PrimaryAccent") : (Brush)FindResource("TextSecondary");
+                valLabel.FontWeight = !isProcessActive ? FontWeights.SemiBold : FontWeights.Medium;
+            }
         }
     }
 }

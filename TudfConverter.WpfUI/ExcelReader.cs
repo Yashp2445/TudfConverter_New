@@ -88,21 +88,12 @@ namespace TudfConverter.WpfUI
             return model;
         }
 
-        /// <summary>
-        /// Clean address text: remove disallowed characters per UCRF spec Appendix A.
-        /// Disallowed in addresses: hyphens (-) and forward slashes (/) that are
-        /// common in Indian addresses like "AT/POST" or "TAL-PATAN".
-        /// </summary>
         private static string CleanAddressText(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return text;
-            // Only remove hyphens — slashes must be preserved for TUDF format (e.g. AT/POST)
             return text.Replace("-", "");
         }
 
-        /// <summary>
-        /// Split address text into lines of max maxLen chars, respecting word boundaries.
-        /// </summary>
         private static List<string> SplitAddressIntoLines(string text, int maxLen)
         {
             var lines = new List<string>();
@@ -145,7 +136,6 @@ namespace TudfConverter.WpfUI
             {
                 var addr = new AddressModel { SegmentIndex = 1 };
 
-                // FIX: Remove hyphens AND forward slashes (both disallowed/problematic in TUDF addresses)
                 var cleanAddress = CleanAddressText(address1Raw);
                 var lines = SplitAddressIntoLines(cleanAddress, 40);
 
@@ -166,7 +156,6 @@ namespace TudfConverter.WpfUI
                 addresses.Add(addr);
             }
 
-            // Second address if present
             var address2Raw = GetValue(row, ExcelColumnMap.AddressLine2);
             if (!string.IsNullOrWhiteSpace(address2Raw))
             {
@@ -211,11 +200,7 @@ namespace TudfConverter.WpfUI
                     ids.Add(idModel);
                 }
             }
-
-            // ID types per UCRF v3.74:
-            // 01=PAN, 02=Passport, 03=VoterID, 04=DrivingLicense, 05=RationCard,
-            // 06=UID/Aadhaar, 09=CKYC, 10=NREGA(G RAM G)
-            // Note: types 07 and 08 (Additional ID) cause "Reject Segment" per spec — do NOT submit them
+          
             AddId(ExcelColumnMap.IncomeTaxIdNumber, 1);
             AddId(ExcelColumnMap.PassportNumber, 2, ExcelColumnMap.PassportIssueDate, ExcelColumnMap.PassportExpiryDate);
             AddId(ExcelColumnMap.VoterIdNumber, 3);
@@ -223,9 +208,6 @@ namespace TudfConverter.WpfUI
             AddId(ExcelColumnMap.RationCardNumber, 5);
             AddId(ExcelColumnMap.UniversalIdNumber, 6);
 
-            // FIX: CKYC is type 09, NREGA is type 10 (per v3.71 correction)
-            // Additional ID #1 and #2 (types 07/08) are marked "For Future Use" = rejected by CIC
-            // So we only submit CKYC and NREGA if present
             AddId(ExcelColumnMap.Ckyc, 9);
             AddId(ExcelColumnMap.NregaCardNumber, 10);
 
@@ -249,11 +231,9 @@ namespace TudfConverter.WpfUI
                 }
             }
 
-            // Telephone types: 01=Mobile, 02=Home, 03=Office (04=Other not in spec v3.74)
             AddPhone(ExcelColumnMap.TelephoneNoMobile, "01");
             AddPhone(ExcelColumnMap.TelephoneNoResidence, "02");
             AddPhone(ExcelColumnMap.TelephoneNoOffice, "03", ExcelColumnMap.ExtensionOffice);
-            // Note: type "04" is not in the v3.74 spec catalogue — map to "00" (Not Classified)
             AddPhone(ExcelColumnMap.TelephoneNoOther, "00", ExcelColumnMap.ExtensionOther);
 
             return phones;
@@ -274,7 +254,6 @@ namespace TudfConverter.WpfUI
             var history = new List<AccountHistoryModel>();
             int index = 1;
 
-            // Spec v3.74: TH segment can occur maximum 47 times per record (H01 to H47)
             for (int i = 1; i <= 47; i++)
             {
                 var dpdKey = $"Month{i}_DPD";
@@ -302,15 +281,10 @@ namespace TudfConverter.WpfUI
             if (row.Columns.TryGetValue(column, out var val)) return val?.Trim();
             return null;
         }
-
-        /// <summary>
-        /// Parse date from various formats. Primary format is ddMMyyyy (as stored in Excel text cells).
-        /// </summary>
         private static bool TryParseDate(string? value, out DateTime date)
         {
             date = default;
             if (string.IsNullOrWhiteSpace(value)) return false;
-            // Primary: ddMMyyyy (UCRF standard format, also how Excel text cells store it)
             if (DateTime.TryParseExact(value, "ddMMyyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
             // Fallback formats
             if (DateTime.TryParseExact(value, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out date)) return true;
@@ -386,7 +360,6 @@ namespace TudfConverter.WpfUI
                         break;
                     }
 
-                    // Collect header key-value pairs from pre-data rows
                     var matchedCells = new List<(IXLCell cell, string matchedKey)>();
                     foreach (var cell in row.CellsUsed())
                     {
@@ -484,11 +457,6 @@ namespace TudfConverter.WpfUI
 
             return result;
         }
-
-        /// <summary>
-        /// Read a cell value as a string, handling date and number types correctly.
-        /// Dates are formatted as ddMMyyyy (UCRF standard).
-        /// </summary>
         private static string ReadCellAsString(IXLCell cell)
         {
             if (cell.DataType == XLDataType.DateTime && cell.Value.IsDateTime)
