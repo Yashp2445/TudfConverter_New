@@ -11,197 +11,125 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- ROW 0: Title bar -->
-        <Border Grid.Row="0" Background="{StaticResource PrimaryBg}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
-                Padding="24,14">
-            <Grid>
-                <TextBlock Text="Validation Results" FontSize="15" FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimary}"
-                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
+        <Grid Grid.Row="0" Margin="40,32,40,24">
+            <TextBlock Text="Validation Summary" FontSize="16" FontWeight="SemiBold" FontFamily="Sora" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBox Style="{StaticResource PremiumInputStyle}" Width="220" 
-                             Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}" 
-                             Tag="Search errors..."/>
-                    <ComboBox Width="175" Margin="8,0,0,0" Height="38" 
-                              SelectedValue="{Binding SelectedOutcomeFilter}" SelectedIndex="0">
-                        <ComboBoxItem Content="All Results"/>
-                        <ComboBoxItem Content="Rejected Records Only"/>
-                        <ComboBoxItem Content="Field Errors Only"/>
-                        <ComboBoxItem Content="Segment Errors Only"/>
-                    </ComboBox>
-                    <Button Content="Export CSV" Margin="8,0,0,0" 
-                            Style="{StaticResource CompactPrimaryButtonStyle}" 
-                            Command="{Binding ExportCsvCommand}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBox Style="{StaticResource PremiumInputStyle}" Width="260" Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}" Tag="Search by ID or field..."/>
+                <ComboBox Width="180" Margin="16,0,0,0" Height="38" Background="{StaticResource PrimaryBg}" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource BorderStrong}" SelectedValue="{Binding SelectedOutcomeFilter}" SelectedIndex="0">
+                    <ComboBoxItem Content="All Results"/>
+                    <ComboBoxItem Content="Rejected Records"/>
+                    <ComboBoxItem Content="Field Level Errors"/>
+                </ComboBox>
+                <Button Content="Export CSV" Margin="16,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvCommand}"/>
+            </StackPanel>
+        </Grid>
 
-        <!-- ROW 1: Badge summary -->
-        <WrapPanel Grid.Row="1" Margin="16,10,16,10">
-            <Border Background="#FDE8E8" CornerRadius="12" Padding="10,4" Margin="0,0,8,0">
-                <TextBlock Foreground="#C81E1E" FontSize="11" FontWeight="SemiBold" 
-                           Text="{Binding RejectedRowCount, StringFormat='{}{0} Records Rejected'}"/>
+        <WrapPanel Grid.Row="1" Margin="40,0,40,24">
+            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6" Padding="16,8" Margin="0,0,16,0">
+                <TextBlock Foreground="{StaticResource ErrorBrush}" FontSize="13" FontWeight="SemiBold" Text="{Binding RejectedRowCount, StringFormat='{}{0} Rejected'}"/>
             </Border>
-            <Border Background="#FEF3C7" CornerRadius="12" Padding="10,4" Margin="0,0,8,0">
-                <TextBlock Foreground="#92400E" FontSize="11" FontWeight="SemiBold" 
-                           Text="{Binding FieldErrorCount, StringFormat='{}{0} Field Errors'}"/>
+            <Border Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="6" Padding="16,8" Margin="0,0,16,0">
+                <TextBlock Foreground="{StaticResource WarningBrush}" FontSize="13" FontWeight="SemiBold" Text="{Binding FieldErrorCount, StringFormat='{}{0} Field Errors'}"/>
             </Border>
-            <Border Background="#DBEAFE" CornerRadius="12" Padding="10,4" Margin="0,0,8,0">
-                <TextBlock Foreground="#1E3A8A" FontSize="11" FontWeight="SemiBold" 
-                           Text="{Binding SegmentErrorCount, StringFormat='{}{0} Segment Errors'}"/>
-            </Border>
-            <Border Background="#F3F4F6" CornerRadius="12" Padding="10,4" Margin="0,0,8,0">
-                <TextBlock Foreground="#6B7280" FontSize="11" FontWeight="SemiBold" 
-                           Text="{Binding TotalIssueCount, StringFormat='{}{0} Total Issues'}"/>
+            <Border Background="{StaticResource PrimaryBg}" BorderBrush="{StaticResource BorderStrong}" BorderThickness="1" CornerRadius="6" Padding="16,8">
+                <TextBlock Foreground="{StaticResource TextSecondary}" FontSize="13" FontWeight="SemiBold" Text="{Binding TotalIssueCount, StringFormat='{}{0} Total Issues'}"/>
             </Border>
         </WrapPanel>
 
-        <!-- ROW 2: DataGrid -->
-        <DataGrid x:Name="dgErrors" Grid.Row="2"
-                  ItemsSource="{Binding FilteredErrors}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.VirtualizationMode="Recycling"
-                  SelectionMode="Single"
-                  SelectionUnit="FullRow"
-                  Background="{StaticResource PrimaryBg}"
-                  RowBackground="{StaticResource PrimaryBg}"
-                  AlternatingRowBackground="{StaticResource SecondaryBg}"
-                  BorderBrush="{StaticResource BorderBrush}"
-                  BorderThickness="0,1,0,0"
-                  GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="{StaticResource BorderBrush}"
-                  RowHeight="40"
-                  FontSize="12">
-            
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="{StaticResource TertiaryBg}"/>
-                    <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
-                    <Setter Property="FontSize" Value="10"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-                    <Setter Property="Height" Value="34"/>
-                    <Setter Property="Padding" Value="12,0"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
+        <Border Grid.Row="2" Background="{StaticResource PrimaryBg}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,1">
+            <DataGrid x:Name="dgErrors"
+                      ItemsSource="{Binding FilteredErrors}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      Background="Transparent"
+                      RowBackground="{StaticResource PrimaryBg}"
+                      AlternatingRowBackground="{StaticResource SecondaryBg}"
+                      BorderThickness="0"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="{StaticResource BorderBrush}"
+                      RowHeight="52"
+                      FontSize="13">
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Row" Binding="{Binding RowNumber}" Width="55">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                            <Setter Property="Margin" Value="0,0,8,0"/>
-                            <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <DataGrid.Resources>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{StaticResource SoftAccentColor}"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="{StaticResource TextPrimaryColor}"/>
+                </DataGrid.Resources>
 
-                <DataGridTemplateColumn Header="Status" Width="90">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border HorizontalAlignment="Left" Margin="8,0" CornerRadius="10" Padding="8,3">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="#DCFCE7"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding RecordStatus}" Value="Rejected">
-                                                <Setter Property="Background" Value="#FDE8E8"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <TextBlock Text="{Binding RecordStatus}" FontSize="11" FontWeight="SemiBold">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="#166534"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding RecordStatus}" Value="Rejected">
-                                                    <Setter Property="Foreground" Value="#C81E1E"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="{StaticResource TertiaryBg}"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                        <Setter Property="FontSize" Value="12"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderStrong}"/>
+                        <Setter Property="Height" Value="48"/>
+                        <Setter Property="Padding" Value="24,0"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
 
-                <DataGridTextColumn Header="Segment" Binding="{Binding SegmentTag}" Width="70">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
-                            <Setter Property="FontWeight" Value="Medium"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Line" Binding="{Binding RowNumber}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                <DataGridTextColumn Header="Error Code" Binding="{Binding ErrorCode}" Width="110">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="FontFamily" Value="Consolas"/>
-                            <Setter Property="Foreground" Value="{StaticResource PrimaryAccent}"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                    <DataGridTextColumn Header="Segment" Binding="{Binding SegmentTag}" Width="110">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Margin" Value="24,0,0,0"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                <DataGridTextColumn Header="Field" Binding="{Binding FieldName}" Width="140">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                    <DataGridTextColumn Header="Code" Binding="{Binding ErrorCode}" Width="140">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="JetBrains Mono, Consolas, monospace"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                <DataGridTextColumn Header="Message" Binding="{Binding ErrorMessage}" Width="*">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                    <DataGridTextColumn Header="Field" Binding="{Binding FieldName}" Width="180">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                <DataGridTemplateColumn Header="Outcome" Width="110">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Outcome}" VerticalAlignment="Center" Margin="8,0">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="{StaticResource TextTertiary}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Outcome}" Value="RejectRecord">
-                                                <Setter Property="Foreground" Value="#C81E1E"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Outcome}" Value="RejectSegment">
-                                                <Setter Property="Foreground" Value="#92400E"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Outcome}" Value="RejectField">
-                                                <Setter Property="Foreground" Value="#1E3A8A"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                    <DataGridTextColumn Header="Validation Message" Binding="{Binding ErrorMessage}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
 
-        <!-- ROW 3: Footer bar -->
-        <DockPanel Grid.Row="3" Margin="16,8">
-            <TextBlock Text="{Binding FilteredCount, StringFormat='Showing {0} errors'}" 
-                       Foreground="{StaticResource TextTertiary}" FontSize="11" 
-                       DockPanel.Dock="Left"/>
-            <TextBlock Text="Only rejected records are included in the TUDF file." 
-                       Foreground="{StaticResource TextTertiary}" FontSize="11" 
-                       HorizontalAlignment="Right" DockPanel.Dock="Right"/>
+        <DockPanel Grid.Row="3" Margin="40,16">
+            <TextBlock Text="{Binding FilteredCount, StringFormat='Showing {0} records'}" Foreground="{StaticResource TextTertiary}" FontSize="13" DockPanel.Dock="Left"/>
+            <TextBlock Text="Records marked as rejected are excluded from output." Foreground="{StaticResource TextTertiary}" FontSize="13" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
         </DockPanel>
     </Grid>
 </UserControl>
