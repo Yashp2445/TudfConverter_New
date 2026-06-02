@@ -30,7 +30,7 @@ namespace TudfConverter.WpfUI
         /// </summary>
         public static string FormatSignedAmountField(string tag, long amount, bool isNegative)
         {
-            var amountStr = amount.ToString();
+            var amountStr = Math.Abs(amount).ToString();
             if (isNegative) amountStr += "-";
             return FormatVariableField(tag, amountStr);
         }
@@ -72,27 +72,28 @@ namespace TudfConverter.WpfUI
             return FormatVariableField(tag, FormatDate(date));
         }
 
-        /// <summary>
-        /// Format Rate of Interest: numeric decimal value, max 4 digits before decimal, 3 after.
-        /// </summary>
-        public static string FormatRateOfInterest(string? value)
+        //public static string FormatRateOfInterest(string? value)
+        //{
+        //    if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        //    if (decimal.TryParse(value, System.Globalization.NumberStyles.Any,
+        //        System.Globalization.CultureInfo.InvariantCulture, out var rate))
+        //    {
+        //        var parts = rate.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture).Split('.');
+        //        var intPart = parts[0];
+        //        var decPart = parts.Length > 1 ? parts[1] : "";
+        //        if (intPart.Length > 4) return string.Empty; 
+        //        if (rate == 0m) return string.Empty; 
+        //        return decPart.Length > 0 ? $"{intPart}.{decPart}" : intPart;
+        //    }
+        //    return value.Trim();
+        //}
+        public static string FormatRateOfInterest(string tag, string? value)
         {
-            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
-            // Try to parse as decimal to normalize
-            if (decimal.TryParse(value, System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture, out var rate))
-            {
-                // Per spec: max 4 digits before decimal, max 3 after, no % sign
-                // Format as up to 4.3 decimal representation
-                var parts = rate.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture).Split('.');
-                var intPart = parts[0];
-                var decPart = parts.Length > 1 ? parts[1] : "";
-                if (intPart.Length > 4) return string.Empty; // invalid per spec
-                if (rate == 0m) return string.Empty; // 0.0 is rejected per spec
-                return decPart.Length > 0 ? $"{intPart}.{decPart}" : intPart;
-            }
-            return value.Trim();
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+            var len = value.Length.ToString("D2");
+            return $"{tag}{len}{value}";
         }
+
     }
 
     public class TudfSegmentBuilder
@@ -447,7 +448,7 @@ namespace TudfConverter.WpfUI
             // Tag 38: Rate Of Interest (Optional, decimal format d.ddd)
             if (!string.IsNullOrEmpty(account.RateOfInterest))
             {
-                var roi = TudfFieldFormatter.FormatRateOfInterest(account.RateOfInterest);
+                var roi = TudfFieldFormatter.FormatRateOfInterest("38", account.RateOfInterest);
                 if (!string.IsNullOrEmpty(roi))
                     sb.Append(TudfFieldFormatter.FormatVariableField("38", roi));
             }

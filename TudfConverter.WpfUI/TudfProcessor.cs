@@ -17,8 +17,9 @@ namespace TudfConverter.WpfUI
 
             try
             {
+                progress.Report(5);
                 status.Report("Reading Excel file...");
-                progress.Report(10);
+                progress.Report(15);
 
                 var reader = new ExcelReaderService();
                 var excelResult = reader.ReadExcelFile(inputPath);
@@ -37,48 +38,76 @@ namespace TudfConverter.WpfUI
                     return result;
                 }
 
-                status.Report("Validating data...");
-                progress.Report(40);
+                status.Report("Mapping records...");
+                progress.Report(30);
 
                 var mapper = new ExcelToCustomerRecordMapper();
-                var validRecords = new List<CustomerRecord>();
-                var rejectedReasons = new List<string>();
-
+                var allRecords = new List<CustomerRecord>();
+                int rowsDone = 0;
+                int totalRows = excelResult.Rows.Count;
                 foreach (var row in excelResult.Rows)
                 {
-                    var record = mapper.Map(row);
-                    string? rejectReason = GetValidationError(record);
+                    allRecords.Add(mapper.Map(row));
+                    rowsDone++;
+                    if (rowsDone % 500 == 0)
+                        progress.Report(15 + (int)(rowsDone / (double)totalRows * 40));
+                }
 
-                    if (rejectReason == null)
-                        validRecords.Add(record);
-                    else
+                // Build header model first — needed for cross-segment date validation
+                var headerModel = BuildHeaderModel(excelResult.HeaderData, allRecords);
+
+                status.Report("Validating data...");
+                progress.Report(50);
+
+                var validator = new TudfValidator(headerModel.DateReportedAndCertified);
+                var validationResults = new List<RecordValidationResult>();
+                var validRecords = new List<CustomerRecord>();
+
+                foreach (var record in allRecords)
+                {
+                    // Quick-fail guard (existing logic)
+                    string? quickReject = GetValidationError(record);
+
+                    if (quickReject != null)
                     {
                         result.RejectedRows++;
-                        rejectedReasons.Add($"Row {row.RowNumber}: {rejectReason}");
+                        continue; // skip TudfValidator for already-rejected records
+                    }
+
+                    // Full validation
+                    var vResult = validator.Validate(record);
+                    validationResults.Add(vResult);
+
+                    if (vResult.IsRecordRejected)
+                    {
+                        result.RejectedRows++;
+                    }
+                    else
+                    {
+                        validRecords.Add(record);
                     }
                 }
+
+                result.ValidationResults = validationResults;
+                result.TotalRows = allRecords.Count;
+                progress.Report(60);
 
                 if (!validRecords.Any())
                 {
                     result.IsSuccess = false;
-                    result.ErrorMessage = "Validation failed. All records were rejected.\n" +
-                                          string.Join("\n", rejectedReasons.Take(10));
+                    result.ErrorMessage = "Validation failed. All records were rejected.";
                     return result;
                 }
 
                 status.Report("Generating TUDF...");
-                progress.Report(70);
-
-                var headerModel = BuildHeaderModel(excelResult.HeaderData, validRecords);
 
                 var generator = new TudfGeneratorService();
                 var tudfContent = generator.Generate(validRecords, headerModel);
+                progress.Report(80);
 
                 status.Report("Saving file...");
-                progress.Report(90);
 
-                // FIX: Save output to "outputs" subfolder of the application directory,
-                // NOT next to the input Excel file.
+                // Save output to "outputs" subfolder of the application directory
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
                 var finalOutputDir = Path.Combine(appDir, "outputs");
                 if (!Directory.Exists(finalOutputDir))
@@ -89,11 +118,11 @@ namespace TudfConverter.WpfUI
                 var outputPath = Path.Combine(finalOutputDir, outputFileName);
 
                 File.WriteAllText(outputPath, tudfContent, System.Text.Encoding.ASCII);
+                progress.Report(95);
 
                 result.IsSuccess = true;
                 result.GeneratedFilePath = outputPath;
                 result.AcceptedRows = validRecords.Count;
-                result.TotalRows = excelResult.Rows.Count;
 
                 status.Report($"Done! {validRecords.Count} records accepted, {result.RejectedRows} rejected.");
                 progress.Report(100);

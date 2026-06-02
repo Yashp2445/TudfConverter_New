@@ -1,8 +1,12 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.Win32;
+using TudfConverter.WpfUI.ViewModels;
 
 namespace TudfConverter.WpfUI
 {
@@ -45,6 +49,16 @@ namespace TudfConverter.WpfUI
             }
         }
 
+        private void BtnViewErrors_Click(object sender, RoutedEventArgs e)
+        {
+            if (validationTab.IsEnabled)
+            {
+                mainTabControl.SelectedIndex = 1;
+                SetNavActive(isProcessActive: false);
+                txtPageTitle.Text = "Validation Results";
+            }
+        }
+
         private async void BtnGenerate_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtInputFilePath.Text))
@@ -57,6 +71,7 @@ namespace TudfConverter.WpfUI
             
             panelStatus.Visibility = Visibility.Visible;
             borderSuccess.Visibility = Visibility.Collapsed;
+            btnViewErrors.Visibility = Visibility.Collapsed;
             pbProgress.Value = 0;
             txtStatus.Text = "Starting process...";
 
@@ -80,10 +95,36 @@ namespace TudfConverter.WpfUI
                     _outputFilePath = result.GeneratedFilePath;
                     txtOutputPath.Text = _outputFilePath;
                     txtOutputPath.ToolTip = _outputFilePath;
+
+                    txtTotalRows.Text = result.TotalRows.ToString();
+                    txtAcceptedRows.Text = result.AcceptedRows.ToString();
+                    txtRejectedRows.Text = result.RejectedRows.ToString();
+
+                    // Populate validation results
+                    var vm = new ValidationResultsViewModel();
+                    vm.LoadResults(result.ValidationResults ?? new System.Collections.Generic.List<RecordValidationResult>());
+                    validationResultsView.DataContext = vm;
+                    validationTab.IsEnabled = true;
+
+                    bool hasErrors = result.ValidationResults != null && result.ValidationResults.Any(r => r.Errors.Any());
+                    btnViewErrors.Visibility = hasErrors ? Visibility.Visible : Visibility.Collapsed;
+
+                    if (hasErrors)
+                    {
+                        mainTabControl.SelectedIndex = 1;
+                        SetNavActive(isProcessActive: false);
+                        txtPageTitle.Text = "Validation Results";
+                    }
                 }
                 else
                 {
                     txtStatus.Text = "Error: " + result.ErrorMessage;
+
+                    // Still populate validation results even on failure so user can see details
+                    var vm = new ValidationResultsViewModel();
+                    vm.LoadResults(result.ValidationResults ?? new System.Collections.Generic.List<RecordValidationResult>());
+                    validationResultsView.DataContext = vm;
+                    validationTab.IsEnabled = true;
                 }
             }
             catch (Exception ex)
@@ -95,6 +136,41 @@ namespace TudfConverter.WpfUI
                 btnGenerate.IsEnabled = true;
                 btnBrowse.IsEnabled = true;
             }
+        }
+
+        // ────── Sidebar navigation ──────
+
+        private void BtnNavProcess_Click(object sender, RoutedEventArgs e)
+        {
+            mainTabControl.SelectedIndex = 0;
+            SetNavActive(isProcessActive: true);
+            txtPageTitle.Text = "Process File";
+        }
+
+        private void BtnNavValidation_Click(object sender, RoutedEventArgs e)
+        {
+            if (validationTab.IsEnabled)
+            {
+                mainTabControl.SelectedIndex = 1;
+                SetNavActive(isProcessActive: false);
+                txtPageTitle.Text = "Validation Results";
+            }
+        }
+
+        private void SetNavActive(bool isProcessActive)
+        {
+            // Update Process button appearance
+            btnNavProcess.Background = isProcessActive
+                ? (System.Windows.Media.Brush)FindResource("SoftAccent")
+                : System.Windows.Media.Brushes.Transparent;
+            // Update Validation button appearance  
+            btnNavValidation.Background = !isProcessActive
+                ? (System.Windows.Media.Brush)FindResource("SoftAccent")
+                : System.Windows.Media.Brushes.Transparent;
+        }
+
+        private void MainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
         }
     }
 }

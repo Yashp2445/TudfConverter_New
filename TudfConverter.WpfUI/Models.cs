@@ -138,5 +138,31 @@ namespace TudfConverter.WpfUI
         public int RejectedRows { get; set; }
         public string? GeneratedFilePath { get; set; }
         public string? ErrorMessage { get; set; }
+        public List<RecordValidationResult> ValidationResults { get; set; } = new List<RecordValidationResult>();
+    }
+
+    public enum FailureOutcome
+    {
+        RejectRecord,
+        RejectSegment,
+        RejectField
+    }
+
+    public class ValidationError
+    {
+        public int RowNumber { get; set; }
+        public string SegmentTag { get; set; } = "";
+        public string ErrorCode { get; set; } = "";
+        public string FieldName { get; set; } = "";
+        public string ErrorMessage { get; set; } = "";
+        public FailureOutcome Outcome { get; set; }
+        public string RecordStatus => Outcome == FailureOutcome.RejectRecord ? "Rejected" : "Warning";
+    }
+
+    public class RecordValidationResult
+    {
+        public int RowNumber { get; set; }
+        public bool IsRecordRejected { get; set; }
+        public List<ValidationError> Errors { get; set; } = new List<ValidationError>();
     }
 }
