@@ -87,11 +87,55 @@ namespace TudfConverter.WpfUI
         //    }
         //    return value.Trim();
         //}
-        public static string FormatRateOfInterest(string tag, string? value)
+        //public static string FormatRateOfInterest(string tag, string? value)
+        //{
+        //    if (string.IsNullOrEmpty(value)) return string.Empty;
+        //    var len = value.Length.ToString("D2");
+        //    return $"{tag}{len}{value}";
+        //}
+        public static string FormatRateOfInterest(string? value)
         {
-            if (string.IsNullOrEmpty(value)) return string.Empty;
-            var len = value.Length.ToString("D2");
-            return $"{tag}{len}{value}";
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            value = value.Trim();
+
+            // Remove % if present
+            value = value.Replace("%", "");
+
+            decimal rate;
+            if (!decimal.TryParse(value, out rate))
+                return string.Empty;
+
+            // Reject 0.0
+            if (rate == 0m)
+                return string.Empty;
+
+            string[] parts = value.Split('.');
+
+            // Must contain decimal point as per specification
+            if (parts.Length != 2)
+                return string.Empty;
+
+            // Max 4 digits before decimal
+            if (parts[0].Length > 4)
+                return string.Empty;
+
+            string integerPart = parts[0];
+            string decimalPart = parts[1];
+
+            // Retain only first 3 digits after decimal
+            if (decimalPart.Length > 3)
+                decimalPart = decimalPart.Substring(0, 3);
+
+            // Remove trailing zeros from decimal portion
+            decimalPart = decimalPart.TrimEnd('0');
+
+            // If decimal part becomes empty, return integer only
+            if (decimalPart.Length == 0)
+                return integerPart;
+
+            return integerPart + "." + decimalPart;
         }
 
     }
@@ -448,7 +492,8 @@ namespace TudfConverter.WpfUI
             // Tag 38: Rate Of Interest (Optional, decimal format d.ddd)
             if (!string.IsNullOrEmpty(account.RateOfInterest))
             {
-                var roi = TudfFieldFormatter.FormatRateOfInterest("38", account.RateOfInterest);
+                var roi = TudfFieldFormatter.FormatRateOfInterest(account.RateOfInterest);
+
                 if (!string.IsNullOrEmpty(roi))
                     sb.Append(TudfFieldFormatter.FormatVariableField("38", roi));
             }
