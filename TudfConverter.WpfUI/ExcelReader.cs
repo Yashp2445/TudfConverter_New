@@ -96,8 +96,8 @@ namespace TudfConverter.WpfUI
         private static string CleanAddressText(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return text;
-            // Remove hyphen and forward slash — both cause issues in TUDF address fields
-            return text.Replace("-", " ").Replace("/", " ");
+            // Only remove hyphens — slashes must be preserved for TUDF format (e.g. AT/POST)
+            return text.Replace("-", "");
         }
 
         /// <summary>
